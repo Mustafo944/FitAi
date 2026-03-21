@@ -1,0 +1,159 @@
+// src/app/page.tsx
+import Link from 'next/link'
+
+const features = [
+  { icon: '🧬', title: 'AI tana tahlili', desc: 'Rasmingizdan tana turini, yog&apos; foizini aniqlaydi. Shaxsiy reja tuzadi.' },
+  { icon: '🍽️', title: 'O&apos;zbek oshxonasi', desc: 'Osh, manti, lag&apos;mon — kaloriya hisoblab, qanday yeyish ko&apos;rsatiladi.' },
+  { icon: '💪', title: 'Mashq dasturi', desc: 'Uyda yoki zalda. Har mashq tavsif bilan. Set/rep kuzatuv.' },
+  { icon: '📊', title: 'Progress grafik', desc: 'Haftalik vazn taxmini. Recharts grafik. Aniq maqsad.' },
+]
+
+const steps = [
+  { n: '01', icon: '📸', title: 'Rasm yuklang', desc: 'To&apos;liq boy rasm. AI tana tuzilishini aniqlaydi.' },
+  { n: '02', icon: '📏', title: 'Ma&apos;lumot kiriting', desc: 'Bo&apos;y, vazn, yosh va maqsad. 1 daqiqa.' },
+  { n: '03', icon: '🤖', title: 'AI tahlil', desc: 'Claude AI BMI, yog&apos; foizi, tana turini aniqlaydi.' },
+  { n: '04', icon: '📋', title: 'Reja olasiz', desc: 'Bugunoq bepul dieta + mashq boshlaysiz.' },
+]
+
+export default function HomePage() {
+  return (
+    <div className="bg-[#0a0a0a] text-[#f0ede6] min-h-screen font-['Instrument_Sans']">
+
+      {/* Nav */}
+      <nav className="fixed top-0 left-0 right-0 z-100 flex items-center justify-between px-6 md:px-12 py-4 md:py-5 bg-[#0a0a0a]/85 backdrop-blur-xl border-b border-white/7">
+        <div className="font-['Clash_Display'] text-xl md:text-2xl font-bold">
+          Fit<span className="text-[#c8f55a]">AI</span>
+        </div>
+        <div className="flex items-center gap-6 md:gap-8">
+          <div className="hidden md:flex items-center gap-6">
+            <a href="#features" className="text-gray-500 text-sm hover:text-white transition-colors">Imkoniyatlar</a>
+            <a href="#pricing" className="text-gray-500 text-sm hover:text-white transition-colors">Narxlar</a>
+          </div>
+          <Link href="/auth" className="bg-[#c8f55a] text-[#0a0a0a] px-5 py-2 md:px-6 md:py-2.5 rounded-full text-xs md:text-sm font-semibold hover:opacity-90 transition-opacity">
+            Bepul boshlash
+          </Link>
+        </div>
+      </nav>
+
+      {/* Hero */}
+      <div className="min-h-screen flex flex-col items-center justify-center text-center px-6 pt-32 pb-20 bg-[radial-gradient(ellipse_60%_50%_at_50%_0%,rgba(200,245,90,0.1)_0%,transparent_70%)]">
+        <div className="inline-flex items-center gap-2 bg-[#c8f55a]/8 border border-[#c8f55a]/20 text-[#c8f55a] px-3.5 py-1.5 rounded-full text-[13px] font-medium mb-7">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#c8f55a]" />
+          AI + Sog&apos;lom hayot
+        </div>
+
+        <h1 className="font-['Clash_Display'] text-[44px] md:text-[88px] font-bold leading-[1.1] md:leading-[1.0] tracking-[-0.03em] mb-5">
+          Tanangizni<br />
+          <span className="text-[#c8f55a]">o&apos;zgartiring</span><br />
+          AI bilan
+        </h1>
+
+        <p className="text-base md:text-lg text-gray-500 max-w-[500px] mb-10 leading-relaxed">
+          Rasmingizni yuklang — AI tanangizni tahlil qiladi, shaxsiy dieta va mashq rejasini tuzadi.
+        </p>
+
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Link href="/auth" className="bg-[#c8f55a] text-[#0a0a0a] px-9 py-4 rounded-full text-base font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+            Bepul boshlash →
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 mt-16 max-w-2xl w-full">
+          {[['98%', 'Aniqlik'], ['5 min', 'Tahlil'], ['30+', 'Reja turi'], ['1000+', 'Foydalanuvchi']].map(([n, l]) => (
+            <div key={l} className="text-center">
+              <div className="font-['Clash_Display'] text-2xl md:text-3xl font-bold text-[#c8f55a]">{n}</div>
+              <div className="text-[11px] md:text-xs text-gray-600 mt-1 uppercase tracking-wider">{l}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Steps */}
+      <section id="how" className="max-w-6xl mx-auto px-6 py-20">
+        <div className="text-[11px] font-bold tracking-[0.1em] uppercase text-[#c8f55a] mb-3.5">Jarayon</div>
+        <h2 className="font-['Clash_Display'] text-3xl md:text-5xl font-bold tracking-tight mb-12">
+          4 qadam — <span className="text-[#c8f55a]">natija tayyor</span>
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-px md:bg-white/5 rounded-2xl overflow-hidden border border-white/5 md:border-none">
+          {steps.map((s, i) => (
+            <div key={i} className="bg-[#111] p-7 md:p-8 flex flex-col items-start text-left border border-white/5 md:border-none rounded-2xl md:rounded-none">
+              <div className="font-['Clash_Display'] text-4xl font-bold text-[#c8f55a]/10 leading-none mb-4">{s.n}</div>
+              <div className="text-3xl mb-4">{s.icon}</div>
+              <div className="font-['Clash_Display'] text-lg font-semibold mb-2">{s.title}</div>
+              <div className="text-sm text-gray-500 leading-relaxed">{s.desc}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Features */}
+      <section id="features" className="max-w-6xl mx-auto px-6 py-0 pb-20">
+        <div className="text-[11px] font-bold tracking-[0.1em] uppercase text-[#c8f55a] mb-3.5">Imkoniyatlar</div>
+        <h2 className="font-['Clash_Display'] text-3xl md:text-5xl font-bold tracking-tight mb-10">
+          Hammasi bir joyda — <span className="text-[#c8f55a]">siz uchun</span>
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {features.map((f, i) => (
+            <div key={i} className="bg-[#111] border border-white/7 rounded-2xl p-7 md:p-8 hover:border-white/20 transition-colors">
+              <div className="w-11 h-11 bg-[#c8f55a]/8 rounded-xl flex items-center justify-center text-xl mb-5">{f.icon}</div>
+              <div className="font-['Clash_Display'] text-xl font-semibold mb-2.5">{f.title}</div>
+              <div className="text-sm text-gray-500 leading-relaxed">{f.desc}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section id="pricing" className="max-w-6xl mx-auto px-6 py-0 pb-20">
+        <div className="text-[11px] font-bold tracking-[0.1em] uppercase text-[#c8f55a] mb-3.5">Narxlar</div>
+        <h2 className="font-['Clash_Display'] text-3xl md:text-5xl font-bold tracking-tight mb-10">
+          Oddiy va <span className="text-[#c8f55a]">shaffof</span>
+        </h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {[
+            { name: 'Bepul', price: '0', period: 'Abadiy', features: ['AI tana tahlili', 'BMI va yog\' foizi', '1 kunlik dieta', '1 kunlik mashq'], no: ['30 kunlik reja', 'Retseptlar', 'Progress kuzatuv'] },
+            { name: 'Pro oylik', price: '4.99', period: 'Oyiga', best: true, features: ['Hammasi bepulda bor', '30 kunlik reja', 'Retseptlar + tayyorlash', 'Video mashqlar', 'Vazn grafigi', 'Ramazon rejimi'], no: [] },
+            { name: 'Pro yillik', price: '39.99', period: 'Yiliga · 33% tejash', features: ['Pro dagi hammasi', 'Shaxsiy AI treneri', '3 ta oila profili', 'PDF hisobot'], no: [] },
+          ].map((plan, i) => (
+            <div key={i} className={`relative p-8 rounded-2xl border ${plan.best ? 'bg-[#c8f55a]/[0.02] border-[#c8f55a]' : 'bg-[#111] border-white/7'}`}>
+              {plan.best && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#c8f55a] text-[#0a0a0a] text-[10px] font-bold px-3 py-1 rounded-full tracking-wider uppercase">
+                  ENG MASHHUR
+                </div>
+              )}
+              <div className="text-[11px] font-bold text-gray-600 uppercase tracking-widest mb-3">{plan.name}</div>
+              <div className="font-['Clash_Display'] text-[44px] font-bold tracking-tighter leading-none mb-1">
+                <span className="text-xl align-top mr-1 font-medium italic">$</span>
+                {plan.price}
+              </div>
+              <div className="text-xs text-gray-600 mb-7">{plan.period}</div>
+              <ul className="space-y-3 mb-8">
+                {plan.features.map((f, fi) => (
+                  <li key={fi} className="text-sm text-gray-400 flex items-center gap-2.5">
+                    <span className="text-[#c8f55a] font-bold text-xs shrink-0">✓</span>{f}
+                  </li>
+                ))}
+                {plan.no.map((f, fi) => (
+                  <li key={fi} className="text-sm text-gray-800 flex items-center gap-2.5 opacity-40">
+                    <span className="text-gray-800 text-xs shrink-0">✗</span>{f}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/auth" className={`block w-full text-center py-3.5 rounded-full text-sm font-semibold transition-all ${plan.best ? 'bg-[#c8f55a] text-[#0a0a0a] hover:opacity-90' : 'bg-transparent text-gray-400 border border-white/10 hover:border-white/20 hover:text-white'}`}>
+                {plan.price === '0' ? 'Bepul boshlash' : 'Pro boshlash'}
+              </Link>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="max-w-6xl mx-auto px-6 py-10 border-t border-white/7 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
+        <div className="font-['Clash_Display'] text-xl font-bold">
+          Fit<span className="text-[#c8f55a]">AI</span>
+        </div>
+        <p className="text-[11px] md:text-xs text-gray-600">© 2025 FitAI · O&apos;zbekiston · Shaxsiy hayot daxlsizligi</p>
+      </footer>
+    </div>
+  )
+}
