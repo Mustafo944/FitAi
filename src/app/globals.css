@@ -29,4 +29,15 @@
     background: #111;
     color: #f0ede6;
   }
+
+  /* Quick Light Theme Inversion */
+  html.theme-light {
+    filter: invert(1) hue-rotate(-45deg);
+  }
+  
+  html.theme-light img,
+  html.theme-light video,
+  html.theme-light canvas {
+    filter: invert(1) hue-rotate(45deg);
+  }
 }

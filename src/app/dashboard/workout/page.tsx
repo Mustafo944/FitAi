@@ -4,12 +4,15 @@
 import { useState, useEffect, useRef } from 'react'
 import { useUserStore } from '@/store/userStore'
 import { useRouter } from 'next/navigation'
+import { useTranslation } from '@/lib/i18n'
 import type { Exercise } from '@/types'
 import Link from 'next/link'
+import BottomNav from '@/components/BottomNav'
 
 export default function WorkoutPage() {
   const router = useRouter()
   const { workoutPlan } = useUserStore()
+  const { t } = useTranslation()
   const [completedSets, setCompletedSets] = useState<Record<string, number>>({})
   const [restTimer, setRestTimer] = useState<number | null>(null)
   const [activeExercise, setActiveExercise] = useState<string | null>(null)
@@ -68,13 +71,13 @@ export default function WorkoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-[#0a0a0a] text-white pb-24 md:pb-8">
       {/* Header */}
       <div className="border-b border-white/8 px-4 py-4 flex items-center gap-3">
         <Link href="/dashboard" className="text-gray-400 hover:text-white transition-colors text-lg">←</Link>
         <div>
           <h1 className="font-bold text-lg" style={{ fontFamily: 'var(--font-clash)' }}>{today.title}</h1>
-          <p className="text-xs text-gray-500">{today.duration} daqiqa · 🔥 {today.calories_burned} kkal</p>
+          <p className="text-xs text-gray-500">{today.duration} {t('workout_min')} · 🔥 {today.calories_burned} {t('diet_kcal')}</p>
         </div>
       </div>
 
@@ -85,15 +88,15 @@ export default function WorkoutPage() {
           <div className="flex justify-between items-end mb-3">
             <div>
               <div className="text-3xl font-bold" style={{ fontFamily: 'var(--font-clash)', color: isWorkoutDone ? '#c8f55a' : 'white' }}>
-                {isWorkoutDone ? '🎉 Bajarildi!' : `${doneSets} / ${totalSets}`}
+                {isWorkoutDone ? `🎉 ${t('workout_done')}` : `${doneSets} / ${totalSets}`}
               </div>
               <div className="text-xs text-gray-500">
-                {isWorkoutDone ? 'Ajoyib ish!' : 'setlar bajarildi'}
+                {isWorkoutDone ? t('workout_excellent') : t('workout_sets_done')}
               </div>
             </div>
             <div className="text-right">
               <div className="text-2xl font-bold text-[#c8f55a]">{workoutPercent}%</div>
-              <div className="text-xs text-gray-500">tugallandi</div>
+              <div className="text-xs text-gray-500">{t('workout_completed')}</div>
             </div>
           </div>
           <div className="w-full bg-white/8 rounded-full h-2">
@@ -107,7 +110,7 @@ export default function WorkoutPage() {
         {/* Rest timer */}
         {restTimer !== null && (
           <div className="bg-[#1a1a1a] border border-[#c8f55a]/30 rounded-2xl p-4 mb-4 text-center">
-            <div className="text-xs text-gray-500 mb-1">Dam olish vaqti — {activeExercise}</div>
+            <div className="text-xs text-gray-500 mb-1">{t('workout_rest_time')} — {activeExercise}</div>
             <div className="text-4xl font-bold text-[#c8f55a]" style={{ fontFamily: 'var(--font-clash)' }}>
               {restTimer}s
             </div>
@@ -115,7 +118,7 @@ export default function WorkoutPage() {
               onClick={() => { clearInterval(timerRef.current!); setRestTimer(null); setActiveExercise(null) }}
               className="mt-2 text-xs text-gray-500 hover:text-white transition-colors"
             >
-              O&apos;tkazib yuborish →
+              {t('workout_skip')}
             </button>
           </div>
         )}
@@ -184,18 +187,18 @@ export default function WorkoutPage() {
                       {ex.sets && (
                         <div className="bg-white/5 rounded-xl p-3 text-center">
                           <div className="text-lg font-bold text-white uppercase" style={{ fontFamily: 'var(--font-clash)' }}>{ex.sets}</div>
-                          <div className="text-[10px] text-gray-500 uppercase tracking-wider">set</div>
+                          <div className="text-[10px] text-gray-500 uppercase tracking-wider">{t('workout_sets')}</div>
                         </div>
                       )}
                       <div className="bg-white/5 rounded-xl p-3 text-center">
                         <div className="text-lg font-bold text-white uppercase" style={{ fontFamily: 'var(--font-clash)' }}>
                           {ex.reps || `${ex.duration}m`}
                         </div>
-                        <div className="text-[10px] text-gray-500 uppercase tracking-wider">{ex.reps ? 'takror' : 'daqiqa'}</div>
+                        <div className="text-[10px] text-gray-500 uppercase tracking-wider">{ex.reps ? t('workout_reps') : t('workout_min')}</div>
                       </div>
                       <div className="bg-white/5 rounded-xl p-3 text-center">
                         <div className="text-lg font-bold text-white uppercase" style={{ fontFamily: 'var(--font-clash)' }}>{ex.rest}s</div>
-                        <div className="text-[10px] text-gray-500 uppercase tracking-wider">dam olish</div>
+                        <div className="text-[10px] text-gray-500 uppercase tracking-wider">{t('workout_rest_time')}</div>
                       </div>
                     </div>
 
@@ -206,12 +209,12 @@ export default function WorkoutPage() {
                         className="w-full py-3 rounded-xl font-semibold text-sm transition-all"
                         style={{ background: '#c8f55a', color: '#0a0a0a' }}
                       >
-                        Set {done + 1} ni bajarildi ✓
+                        Set {done + 1} {t('workout_completed')} ✓
                       </button>
                     ) : (
                       <div className="w-full py-3 rounded-xl text-center text-sm font-medium"
                         style={{ background: 'rgba(200,245,90,0.1)', color: '#c8f55a' }}>
-                        ✓ Barcha setlar bajarildi!
+                        ✓ {t('workout_done')}!
                       </div>
                     )}
                   </div>
@@ -225,16 +228,18 @@ export default function WorkoutPage() {
         <div className="mt-6 bg-[#c8f55a]/8 border border-[#c8f55a]/20 rounded-2xl p-5 text-center">
           <div className="text-lg mb-1">🔒</div>
           <h3 className="font-bold mb-1" style={{ fontFamily: 'var(--font-clash)' }}>
-            30 kunlik mashq dasturi
+            {t('dash_pro_title')}
           </h3>
           <p className="text-gray-400 text-xs mb-3">
-            Har kunlik trenirovka, progress kuzatuv
+            {t('dash_pro_desc')}
           </p>
           <button className="bg-[#c8f55a] text-black text-sm font-semibold px-6 py-2.5 rounded-full hover:opacity-90 transition-opacity">
-            Pro — $4.99/oy
+            {t('dash_pro_btn')}
           </button>
         </div>
       </div>
+
+      <BottomNav />
     </div>
   )
 }

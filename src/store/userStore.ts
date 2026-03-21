@@ -10,8 +10,21 @@ import type {
   OnboardingData,
   WeightProgress,
 } from '@/types'
+import type { Locale } from '@/lib/i18n'
 
 interface UserStore {
+  // i18n & theme
+  locale: Locale
+  setLocale: (locale: Locale) => void
+  theme: 'dark' | 'light'
+  setTheme: (theme: 'dark' | 'light') => void
+
+  // User info
+  userName: string
+  userSurname: string
+  setUserName: (name: string) => void
+  setUserSurname: (surname: string) => void
+
   onboardingData: OnboardingData
   setOnboardingData: (data: Partial<OnboardingData>) => void
   resetOnboarding: () => void
@@ -48,6 +61,16 @@ const defaultOnboarding: OnboardingData = {
 export const useUserStore = create<UserStore>()(
   persist(
     (set) => ({
+      locale: 'uz',
+      setLocale: (locale) => set({ locale }),
+      theme: 'dark',
+      setTheme: (theme) => set({ theme }),
+
+      userName: '',
+      userSurname: '',
+      setUserName: (userName) => set({ userName }),
+      setUserSurname: (userSurname) => set({ userSurname }),
+
       onboardingData: defaultOnboarding,
       setOnboardingData: (data) =>
         set((s) => ({
@@ -80,6 +103,10 @@ export const useUserStore = create<UserStore>()(
     {
       name: 'fitai-store',
       partialize: (s) => ({
+        locale: s.locale,
+        theme: s.theme,
+        userName: s.userName,
+        userSurname: s.userSurname,
         onboardingData: s.onboardingData,
         profile: s.profile,
         analysis: s.analysis,

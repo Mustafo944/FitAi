@@ -1,0 +1,439 @@
+// src/lib/i18n.ts
+import { useUserStore } from '@/store/userStore'
+
+export type Locale = 'uz' | 'ru'
+
+const translations = {
+  uz: {
+    // Nav & Common
+    freeplan: 'Bepul reja',
+    logout: 'Chiqish',
+    back: '← Orqaga',
+    continue: 'Davom etish →',
+    loading: 'Yuklanmoqda...',
+    save: 'Saqlash',
+    cancel: 'Bekor qilish',
+    settings: 'Sozlamalar',
+
+    // Auth
+    auth_title_login: 'Tizimga kirish',
+    auth_title_register: "Ro'yxatdan o'tish",
+    auth_email: 'Email',
+    auth_password: 'Parol',
+    auth_login: 'Kirish',
+    auth_register: "Ro'yxatdan o'tish",
+    auth_google: 'Google orqali kirish',
+    auth_switch_register: "Akkauntingiz yo'qmi?",
+    auth_switch_login: 'Akkauntingiz bormi?',
+    auth_register_link: "Ro'yxatdan o'ting",
+    auth_login_link: 'Tizimga kiring',
+    auth_or: 'yoki',
+    auth_success_register: "Ro'yxatdan o'tdingiz! Tasdiqlash xati yuborilgan bo'lishi mumkin.",
+    auth_error_invalid: "Email yoki parol noto'g'ri",
+    auth_error_exists: "Bu email allaqachon ro'yxatdan o'tgan",
+    auth_error_generic: 'Xato yuz berdi',
+    auth_error_google_disabled: "Google orqali kirish hozircha o'chiq. Supabase Dashboard'dan Google Provider'ni yoqing.",
+    auth_error_google: 'Google orqali kirishda xato yuz berdi',
+
+    // Onboarding
+    onboarding_hello: 'Salom! Boshlaylik 👋',
+    onboarding_subtitle: "Asosiy ma'lumotlaringizni kiriting",
+    onboarding_height: "Bo'y (sm)",
+    onboarding_weight: 'Vazn (kg)',
+    onboarding_age: 'Yosh',
+    onboarding_gender: 'Jins',
+    onboarding_gender_select: 'Tanlang',
+    onboarding_gender_male: 'Erkak',
+    onboarding_gender_female: 'Ayol',
+    onboarding_goal_title: 'Maqsadingiz nima?',
+    onboarding_goal_subtitle: 'AI shunga mos reja tuzadi',
+    onboarding_goal_loss: "Vazn yo'qotish",
+    onboarding_goal_gain: 'Mushak olish',
+    onboarding_goal_maintain: 'Vazn saqlash',
+    onboarding_goal_healthy: "Sog'lom turmush",
+    onboarding_ai_scan: 'AI Body Scan',
+    onboarding_ai_scan_desc: 'Rasm yuklang, AI tana turini taxminiy baholaydi',
+    onboarding_pick_image: 'Rasm tanlash',
+    onboarding_image_format: 'PNG, JPG yoki JPEG format',
+    onboarding_start_scan: 'AI Scan boshlash',
+    onboarding_replace: 'Almashtirish',
+    onboarding_remove: 'Olib tashlash',
+    onboarding_no_image: 'Rasm yuklanmagan',
+    onboarding_start_analysis: 'AI tahlilini boshlash 🚀',
+    onboarding_step_preparing: 'Rasm tayyorlanmoqda...',
+    onboarding_step_scanning: 'AI body scan boshlandi...',
+    onboarding_step_contour: 'Tana konturi aniqlanmoqda...',
+    onboarding_step_bmi: "BMI va yog' foizi hisoblanmoqda...",
+    onboarding_step_diet: 'Dieta reja tuzilmoqda...',
+    onboarding_step_workout: 'Mashq dasturi yaratilmoqda...',
+    onboarding_done: 'Tayyor! ✓',
+
+    // Validation
+    val_fill_all: "Barcha maydonlarni to'ldiring",
+    val_height: "Bo'y 100 dan 250 sm gacha bo'lishi kerak",
+    val_weight: "Vazn 30 dan 300 kg gacha bo'lishi kerak",
+    val_age: "Yosh 10 dan 100 gacha bo'lishi kerak",
+    val_goal: 'Maqsadni tanlang',
+
+    // Dashboard
+    dash_results: 'Tahlil natijalari ✅',
+    dash_your_metrics: "Sizning shaxsiy ko'rsatkichlaringiz",
+    dash_bmi: 'BMI indeksi',
+    dash_fat: "Yog' foizi",
+    dash_body_type: 'Tana turi',
+    dash_estimate: "Taxminiy o'zgarish",
+    dash_body_score: 'Tana bahosi',
+    dash_low: 'Past',
+    dash_medium: "O'rtacha",
+    dash_high: 'Yuqori',
+    dash_belly_fat: "Qorin yog'i",
+    dash_muscle: "Mushak ko'rinishi",
+    dash_posture: 'Postura',
+    dash_goal_time: 'Maqsadgacha vaqt',
+    dash_weeks: 'hafta',
+    dash_calculating: 'Hisoblanmoqda',
+    dash_today_plan: 'Bugungi reja',
+    dash_today_diet: 'Bugungi dieta',
+    dash_workout: 'Mashq rejasi',
+    dash_progress: 'Progress grafigi',
+    dash_view: "Ko'rish →",
+    dash_ai_coach: '🧠 AI Coach',
+    dash_ai_summary: '🤖 AI xulosasi',
+    dash_excellent: "A'lo",
+    dash_good: 'Yaxshi',
+    dash_needs_work: 'Ishlash kerak',
+    dash_level: 'Daraja',
+    dash_score: 'Ball',
+    dash_confidence: 'Ishonchlilik',
+    dash_image_quality: 'Rasm sifati',
+    dash_pro_title: "30 kunlik to'liq reja",
+    dash_pro_desc: "Har kunlik dieta + mashq + progress kuzatuv + retseptlar",
+    dash_pro_btn: 'Pro boshlash — $4.99/oy',
+    dash_pro_cancel: 'Istalgan vaqt bekor qilish mumkin',
+    dash_1day: '1-kun (bepul)',
+
+    // Levels
+    level_beginner: "Boshlang'ich",
+    level_intermediate: "O'rta",
+    level_advanced: 'Yuqori',
+    level_elite: 'Elite',
+
+    // Body types
+    body_ectomorph: 'Ektomorf',
+    body_mesomorph: 'Mezomorf',
+    body_endomorph: 'Endomorf',
+    body_unknown: "Noma'lum",
+
+    // BMI labels
+    bmi_underweight: 'Kam vazn',
+    bmi_normal: 'Normal',
+    bmi_overweight: 'Ortiqcha',
+    bmi_obese: 'Semizlik',
+
+    // Features
+    feat_low: 'Kam',
+    feat_medium: "O'rtacha",
+    feat_high: 'Yuqori',
+    feat_good: 'Yaxshi',
+    feat_average: "O'rtacha",
+    feat_bad: 'Yomon',
+
+    // Scan overlay
+    scan_vision: 'Ko\'rish',
+    scan_active: 'Faol',
+    scan_body_type: 'Tana turi',
+    scan_estimating: 'Aniqlanmoqda',
+    scan_fat: "Yog' %",
+    scan_analyzing: 'Tahlil',
+    scan_scanning: 'SKANERLASH',
+    scan_before: 'OLDIN',
+    scan_after: 'KEYIN',
+    scan_ready: 'Tayyor',
+    scan_auto_detect: 'Avto aniqlash',
+    scan_estimate: 'Taxmin',
+    scan_uploaded: 'Yuklangan rasm',
+    scan_ai_analyze: 'AI tanani tahlil qiladi',
+    scan_smart: 'Smart tahlil',
+    scan_smart_desc: "Body type, BMI va taxminiy yog' %",
+
+    // Diet
+    diet_title: 'Dieta rejasi',
+    diet_subtitle: "AI tuzgan ovqatlanish rejasi",
+    diet_total: 'Jami kaloriya',
+    diet_water: 'Suv',
+    diet_liters: 'litr',
+    diet_kcal: 'kkal',
+
+    // Workout
+    workout_title: 'Mashq rejasi',
+    workout_min: 'daqiqa',
+    workout_rest: 'Dam olish',
+    workout_skip: "O'tkazib yuborish",
+    workout_sets: 'set',
+    workout_reps: 'takror',
+    workout_done: 'Bajarildi',
+    workout_excellent: 'Ajoyib ish!',
+    workout_sets_done: 'setlar bajarildi',
+    workout_completed: 'tugallandi',
+    workout_rest_time: 'Dam olish vaqti',
+
+    // Progress
+    progress_title: 'Vazn kuzatuvi',
+    progress_week: 'Hafta',
+    progress_estimated: 'Taxminiy',
+    progress_actual: 'Haqiqiy',
+    progress_add: "Haqiqiy vaznni qo'shish",
+    dash_reanalyze: 'Qayta tahlil qilish',
+    progress_kg: 'kg',
+
+    // Settings
+    settings_title: 'Sozlamalar',
+    settings_name: 'Ism',
+    settings_surname: 'Familiya',
+    settings_language: 'Til',
+    settings_theme: 'Tema',
+    settings_theme_dark: "Qorong'u",
+    settings_theme_light: "Yorug'",
+    settings_profile: "Profil ma'lumotlari",
+    settings_edit_profile: "Ma'lumotlarni o'zgartirish",
+    settings_reanalyze: 'AI qayta tahlil',
+    settings_saved: 'Saqlandi ✓',
+
+    // Bottom Nav
+    nav_home: 'Bosh sahifa',
+    nav_diet: 'Dieta',
+    nav_workout: 'Mashq',
+    nav_progress: 'Progress',
+    nav_settings: 'Sozlamalar',
+
+    // Landing
+    landing_features: 'Imkoniyatlar',
+    landing_pricing: 'Narxlar',
+    landing_start: 'Bepul boshlash',
+  },
+
+  ru: {
+    // Nav & Common
+    freeplan: 'Бесплатный план',
+    logout: 'Выйти',
+    back: '← Назад',
+    continue: 'Продолжить →',
+    loading: 'Загрузка...',
+    save: 'Сохранить',
+    cancel: 'Отмена',
+    settings: 'Настройки',
+
+    // Auth
+    auth_title_login: 'Вход в систему',
+    auth_title_register: 'Регистрация',
+    auth_email: 'Электронная почта',
+    auth_password: 'Пароль',
+    auth_login: 'Войти',
+    auth_register: 'Зарегистрироваться',
+    auth_google: 'Войти через Google',
+    auth_switch_register: 'Нет аккаунта?',
+    auth_switch_login: 'Уже есть аккаунт?',
+    auth_register_link: 'Зарегистрируйтесь',
+    auth_login_link: 'Войдите',
+    auth_or: 'или',
+    auth_success_register: 'Регистрация прошла успешно! Возможно, на вашу почту отправлено письмо для подтверждения.',
+    auth_error_invalid: 'Неверный email или пароль',
+    auth_error_exists: 'Этот email уже зарегистрирован',
+    auth_error_generic: 'Произошла ошибка',
+    auth_error_google_disabled: 'Вход через Google временно отключён. Включите Google Provider в Supabase Dashboard.',
+    auth_error_google: 'Ошибка входа через Google',
+
+    // Onboarding
+    onboarding_hello: 'Привет! Начнём 👋',
+    onboarding_subtitle: 'Введите ваши основные данные',
+    onboarding_height: 'Рост (см)',
+    onboarding_weight: 'Вес (кг)',
+    onboarding_age: 'Возраст',
+    onboarding_gender: 'Пол',
+    onboarding_gender_select: 'Выберите',
+    onboarding_gender_male: 'Мужской',
+    onboarding_gender_female: 'Женский',
+    onboarding_goal_title: 'Какая у вас цель?',
+    onboarding_goal_subtitle: 'AI составит план под вашу цель',
+    onboarding_goal_loss: 'Похудение',
+    onboarding_goal_gain: 'Набор мышц',
+    onboarding_goal_maintain: 'Поддержание веса',
+    onboarding_goal_healthy: 'Здоровый образ жизни',
+    onboarding_ai_scan: 'AI Body Scan',
+    onboarding_ai_scan_desc: 'Загрузите фото, AI оценит тип телосложения',
+    onboarding_pick_image: 'Выбрать фото',
+    onboarding_image_format: 'Формат PNG, JPG или JPEG',
+    onboarding_start_scan: 'Начать AI сканирование',
+    onboarding_replace: 'Заменить',
+    onboarding_remove: 'Удалить',
+    onboarding_no_image: 'Фото не загружено',
+    onboarding_start_analysis: 'Начать AI анализ 🚀',
+    onboarding_step_preparing: 'Подготовка изображения...',
+    onboarding_step_scanning: 'AI сканирование начато...',
+    onboarding_step_contour: 'Определение контуров тела...',
+    onboarding_step_bmi: 'Расчёт BMI и процента жира...',
+    onboarding_step_diet: 'Составление плана питания...',
+    onboarding_step_workout: 'Создание программы тренировок...',
+    onboarding_done: 'Готово! ✓',
+
+    // Validation
+    val_fill_all: 'Заполните все поля',
+    val_height: 'Рост должен быть от 100 до 250 см',
+    val_weight: 'Вес должен быть от 30 до 300 кг',
+    val_age: 'Возраст должен быть от 10 до 100',
+    val_goal: 'Выберите цель',
+
+    // Dashboard
+    dash_results: 'Результаты анализа ✅',
+    dash_your_metrics: 'Ваши персональные показатели',
+    dash_bmi: 'Индекс BMI',
+    dash_fat: 'Процент жира',
+    dash_body_type: 'Тип телосложения',
+    dash_estimate: 'Ожидаемое изменение',
+    dash_body_score: 'Оценка тела',
+    dash_low: 'Низкий',
+    dash_medium: 'Средний',
+    dash_high: 'Высокий',
+    dash_belly_fat: 'Жир на животе',
+    dash_muscle: 'Видимость мышц',
+    dash_posture: 'Осанка',
+    dash_goal_time: 'Время до цели',
+    dash_weeks: 'недель',
+    dash_calculating: 'Вычисляется',
+    dash_today_plan: 'План на сегодня',
+    dash_today_diet: 'Питание на сегодня',
+    dash_workout: 'План тренировки',
+    dash_progress: 'График прогресса',
+    dash_view: 'Смотреть →',
+    dash_ai_coach: '🧠 AI Тренер',
+    dash_ai_summary: '🤖 Заключение AI',
+    dash_excellent: 'Отлично',
+    dash_good: 'Хорошо',
+    dash_needs_work: 'Нужна работа',
+    dash_level: 'Уровень',
+    dash_score: 'Балл',
+    dash_confidence: 'Достоверность',
+    dash_image_quality: 'Качество фото',
+    dash_pro_title: 'Полный 30-дневный план',
+    dash_pro_desc: 'Ежедневное питание + тренировки + отслеживание + рецепты',
+    dash_pro_btn: 'Начать Pro — $4.99/мес',
+    dash_pro_cancel: 'Можно отменить в любое время',
+    dash_1day: '1-й день (бесплатно)',
+
+    // Levels
+    level_beginner: 'Начинающий',
+    level_intermediate: 'Средний',
+    level_advanced: 'Продвинутый',
+    level_elite: 'Элитный',
+
+    // Body types
+    body_ectomorph: 'Эктоморф',
+    body_mesomorph: 'Мезоморф',
+    body_endomorph: 'Эндоморф',
+    body_unknown: 'Неизвестно',
+
+    // BMI labels
+    bmi_underweight: 'Недостаточный вес',
+    bmi_normal: 'Нормальный',
+    bmi_overweight: 'Избыточный',
+    bmi_obese: 'Ожирение',
+
+    // Features
+    feat_low: 'Низкий',
+    feat_medium: 'Средний',
+    feat_high: 'Высокий',
+    feat_good: 'Хорошая',
+    feat_average: 'Средняя',
+    feat_bad: 'Плохая',
+
+    // Scan overlay
+    scan_vision: 'Зрение',
+    scan_active: 'Активно',
+    scan_body_type: 'Тип тела',
+    scan_estimating: 'Определяется',
+    scan_fat: 'Жир %',
+    scan_analyzing: 'Анализ',
+    scan_scanning: 'СКАНИРОВАНИЕ',
+    scan_before: 'ДО',
+    scan_after: 'ПОСЛЕ',
+    scan_ready: 'Готово',
+    scan_auto_detect: 'Авто-определение',
+    scan_estimate: 'Оценка',
+    scan_uploaded: 'Загруженное фото',
+    scan_ai_analyze: 'AI анализирует тело',
+    scan_smart: 'Smart анализ',
+    scan_smart_desc: 'Тип тела, BMI и примерный % жира',
+
+    // Diet
+    diet_title: 'План питания',
+    diet_subtitle: 'План питания, составленный AI',
+    diet_total: 'Всего калорий',
+    diet_water: 'Вода',
+    diet_liters: 'литров',
+    diet_kcal: 'ккал',
+
+    // Workout
+    workout_title: 'План тренировки',
+    workout_min: 'минут',
+    workout_rest: 'Отдых',
+    workout_skip: 'Пропустить',
+    workout_sets: 'подходы',
+    workout_reps: 'повторения',
+    workout_done: 'Готово',
+    workout_excellent: 'Отличная работа!',
+    workout_sets_done: 'подходов выполнено',
+    workout_completed: 'завершено',
+    workout_rest_time: 'Время отдыха',
+
+    // Progress
+    progress_title: 'Отслеживание веса',
+    progress_week: 'Неделя',
+    progress_estimated: 'Ожидаемый',
+    progress_actual: 'Фактический',
+    progress_add: 'Добавить фактический вес',
+    dash_reanalyze: 'Переанализировать',
+    progress_kg: 'кг',
+
+    // Settings
+    settings_title: 'Настройки',
+    settings_name: 'Имя',
+    settings_surname: 'Фамилия',
+    settings_language: 'Язык',
+    settings_theme: 'Тема',
+    settings_theme_dark: 'Тёмная',
+    settings_theme_light: 'Светлая',
+    settings_profile: 'Данные профиля',
+    settings_edit_profile: 'Изменить данные',
+    settings_reanalyze: 'Повторный AI анализ',
+    settings_saved: 'Сохранено ✓',
+
+    // Bottom Nav
+    nav_home: 'Главная',
+    nav_diet: 'Питание',
+    nav_workout: 'Тренировка',
+    nav_progress: 'Прогресс',
+    nav_settings: 'Настройки',
+
+    // Landing
+    landing_features: 'Возможности',
+    landing_pricing: 'Цены',
+    landing_start: 'Начать бесплатно',
+  },
+} as const
+
+export type TranslationKey = keyof typeof translations.uz
+
+export function useTranslation() {
+  const locale = useUserStore((s) => s.locale)
+  const t = (key: TranslationKey): string => {
+    return translations[locale]?.[key] || translations.uz[key] || key
+  }
+  return { t, locale }
+}
+
+export function getTranslation(locale: Locale) {
+  const t = (key: TranslationKey): string => {
+    return translations[locale]?.[key] || translations.uz[key] || key
+  }
+  return { t }
+}

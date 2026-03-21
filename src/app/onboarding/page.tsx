@@ -3,19 +3,16 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase'
 import { useUserStore } from '@/store/userStore'
+import { useTranslation } from '@/lib/i18n'
 import toast from 'react-hot-toast'
 import type { Gender, Goal } from '@/types'
 
-const GOALS = [
-  { value: 'weight_loss', emoji: '🔥', label: "Vazn yo'qotish" },
-  { value: 'muscle_gain', emoji: '💪', label: 'Mushak olish' },
-  { value: 'maintain', emoji: '⚖️', label: 'Vazn saqlash' },
-  { value: 'healthy_life', emoji: '🏃', label: "Sog'lom turmush" },
-]
-
 export default function OnboardingPage() {
   const router = useRouter()
+  const supabase = createClient()
+  const { t } = useTranslation()
 
   const {
     onboardingData,
@@ -24,6 +21,7 @@ export default function OnboardingPage() {
     setDietPlan,
     setWorkoutPlan,
     setProgress,
+    locale,
   } = useUserStore()
 
   const [step, setStep] = useState(1)
@@ -32,11 +30,40 @@ export default function OnboardingPage() {
   const [progressText, setProgressText] = useState('')
   const [preview, setPreview] = useState('')
 
+  const GOALS = [
+    { value: 'weight_loss', emoji: '🔥', labelKey: 'onboarding_goal_loss' as const },
+    { value: 'muscle_gain', emoji: '💪', labelKey: 'onboarding_goal_gain' as const },
+    { value: 'maintain', emoji: '⚖️', labelKey: 'onboarding_goal_maintain' as const },
+    { value: 'healthy_life', emoji: '🏃', labelKey: 'onboarding_goal_healthy' as const },
+  ]
+
   useEffect(() => {
+    const checkUserAndRedirect = async () => {
+      const state = useUserStore.getState()
+      
+      // Agar tayyor reja qabul qilingan bo'lsa
+      if (state.analysis) {
+        router.replace('/dashboard')
+        return
+      }
+
+      // Agar localda yo'q, lekin DB da bo'lsa
+      const { data: { user } } = await supabase.auth.getUser()
+      const meta = user?.user_metadata
+      if (meta?.analysis) {
+        state.setAnalysis(meta.analysis)
+        if (meta.dietPlan) state.setDietPlan(meta.dietPlan)
+        if (meta.workoutPlan) state.setWorkoutPlan(meta.workoutPlan)
+        router.replace('/dashboard')
+      }
+    }
+
+    checkUserAndRedirect()
+    
     return () => {
       if (preview) URL.revokeObjectURL(preview)
     }
-  }, [preview])
+  }, [preview, router, supabase])
 
   const validateStepOne = () => {
     const { height, weight, age, gender } = onboardingData
@@ -46,22 +73,22 @@ export default function OnboardingPage() {
     const a = Number(age)
 
     if (!height || !weight || !age || !gender) {
-      toast.error("Barcha maydonlarni to'ldiring")
+      toast.error(t('val_fill_all'))
       return false
     }
 
     if (Number.isNaN(h) || h < 100 || h > 250) {
-      toast.error("Bo'y 100 dan 250 sm gacha bo'lishi kerak")
+      toast.error(t('val_height'))
       return false
     }
 
     if (Number.isNaN(w) || w < 30 || w > 300) {
-      toast.error("Vazn 30 dan 300 kg gacha bo'lishi kerak")
+      toast.error(t('val_weight'))
       return false
     }
 
     if (Number.isNaN(a) || a < 10 || a > 100) {
-      toast.error("Yosh 10 dan 100 gacha bo'lishi kerak")
+      toast.error(t('val_age'))
       return false
     }
 
@@ -81,7 +108,7 @@ export default function OnboardingPage() {
     if (!validateStepOne()) return
 
     if (!goal) {
-      toast.error('Maqsadni tanlang')
+      toast.error(t('val_goal'))
       return
     }
 
@@ -90,12 +117,12 @@ export default function OnboardingPage() {
     setProgressText('')
 
     const steps = [
-      [12, 'Rasm tayyorlanmoqda...'],
-      [25, 'AI body scan boshlandi...'],
-      [42, 'Tana konturi aniqlanmoqda...'],
-      [58, "BMI va yog' foizi hisoblanmoqda..."],
-      [76, 'Dieta reja tuzilmoqda...'],
-      [91, 'Mashq dasturi yaratilmoqda...'],
+      [12, t('onboarding_step_preparing')],
+      [25, t('onboarding_step_scanning')],
+      [42, t('onboarding_step_contour')],
+      [58, t('onboarding_step_bmi')],
+      [76, t('onboarding_step_diet')],
+      [91, t('onboarding_step_workout')],
     ] as const
 
     let si = 0
@@ -119,6 +146,7 @@ export default function OnboardingPage() {
       formData.append('age', String(age).trim())
       formData.append('gender', String(gender).trim())
       formData.append('goal', String(goal).trim())
+      formData.append('locale', locale)
 
       const aiPlanRes = await fetch('/api/ai-plan', {
         method: 'POST',
@@ -128,7 +156,7 @@ export default function OnboardingPage() {
       const aiPlanData = await aiPlanRes.json()
 
       if (!aiPlanRes.ok || !aiPlanData.success) {
-        throw new Error(aiPlanData.error || "Kiritilgan ma'lumotlar noto'g'ri")
+        throw new Error(aiPlanData.error || t('auth_error_generic'))
       }
 
       const raw = aiPlanData.data.analysis
@@ -148,7 +176,7 @@ export default function OnboardingPage() {
         },
 
         coach_message:
-          raw.coach_message || "Bugun rejangizni davom ettiring.",
+          raw.coach_message || (locale === 'ru' ? 'Продолжайте план сегодня.' : 'Bugun rejangizni davom ettiring.'),
       }
 
       setAnalysis(analysis)
@@ -161,9 +189,18 @@ export default function OnboardingPage() {
         },
       ])
 
+      // Data basega ham saqlash (boshqa joydan kirganda o'chib ketmasligi uchun)
+      await supabase.auth.updateUser({
+        data: {
+          analysis: analysis,
+          dietPlan: aiPlanData.data.diet || [],
+          workoutPlan: aiPlanData.data.workout || []
+        }
+      })
+
       clearInterval(interval)
       setProgressValue(100)
-      setProgressText('Tayyor! ✓')
+      setProgressText(t('onboarding_done'))
 
       setTimeout(() => {
         router.push('/dashboard')
@@ -172,8 +209,8 @@ export default function OnboardingPage() {
       clearInterval(interval)
       setAnalyzing(false)
 
-      const message = err instanceof Error ? err.message : "Noma'lum xato"
-      toast.error(message || "Xato yuz berdi, qaytadan urinib ko'ring")
+      const message = err instanceof Error ? err.message : t('auth_error_generic')
+      toast.error(message)
     }
   }
 
@@ -210,13 +247,14 @@ export default function OnboardingPage() {
                 className="text-2xl font-bold text-white mb-2"
                 style={{ fontFamily: 'var(--font-clash)' }}
               >
-                AI Body Scan
+                {t('onboarding_ai_scan')}
               </h2>
 
               <p className="text-gray-500 mb-6">{progressText}</p>
 
               {preview ? (
                 <div className="relative mb-6 rounded-3xl overflow-hidden border border-[#c8f55a]/20 bg-black">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={preview}
                     alt="Body scan preview"
@@ -238,27 +276,27 @@ export default function OnboardingPage() {
                   </div>
 
                   <div className="absolute top-3 right-3 text-[10px] px-3 py-1.5 rounded-full bg-black/70 text-[#c8f55a] border border-[#c8f55a]/20 tracking-[0.2em]">
-                    SCANNING
+                    {t('scan_scanning')}
                   </div>
 
                   <div className="absolute bottom-3 left-3 right-3 grid grid-cols-3 gap-2">
                     <div className="rounded-xl border border-white/10 bg-black/60 p-2 text-center">
-                      <div className="text-[10px] text-gray-400">Vision</div>
-                      <div className="text-xs text-white font-medium">Active</div>
+                      <div className="text-[10px] text-gray-400">{t('scan_vision')}</div>
+                      <div className="text-xs text-white font-medium">{t('scan_active')}</div>
                     </div>
                     <div className="rounded-xl border border-white/10 bg-black/60 p-2 text-center">
-                      <div className="text-[10px] text-gray-400">Body Type</div>
-                      <div className="text-xs text-white font-medium">Estimating</div>
+                      <div className="text-[10px] text-gray-400">{t('scan_body_type')}</div>
+                      <div className="text-xs text-white font-medium">{t('scan_estimating')}</div>
                     </div>
                     <div className="rounded-xl border border-white/10 bg-black/60 p-2 text-center">
-                      <div className="text-[10px] text-gray-400">Fat %</div>
-                      <div className="text-xs text-white font-medium">Analyzing</div>
+                      <div className="text-[10px] text-gray-400">{t('scan_fat')}</div>
+                      <div className="text-xs text-white font-medium">{t('scan_analyzing')}</div>
                     </div>
                   </div>
                 </div>
               ) : (
                 <div className="mb-6 rounded-3xl border border-dashed border-white/10 bg-white/5 h-72 flex items-center justify-center text-gray-500">
-                  Rasm yuklanmagan
+                  {t('onboarding_no_image')}
                 </div>
               )}
 
@@ -312,15 +350,15 @@ export default function OnboardingPage() {
               className="text-3xl font-bold text-white mb-2"
               style={{ fontFamily: 'var(--font-clash)' }}
             >
-              Salom! Boshlaylik 👋
+              {t('onboarding_hello')}
             </h2>
 
-            <p className="text-gray-500 mb-8">Asosiy ma&apos;lumotlaringizni kiriting</p>
+            <p className="text-gray-500 mb-8">{t('onboarding_subtitle')}</p>
 
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div>
                 <label className="text-xs text-gray-500 font-medium mb-1.5 block">
-                  Bo&apos;y (sm)
+                  {t('onboarding_height')}
                 </label>
                 <input
                   type="number"
@@ -333,7 +371,7 @@ export default function OnboardingPage() {
 
               <div>
                 <label className="text-xs text-gray-500 font-medium mb-1.5 block">
-                  Vazn (kg)
+                  {t('onboarding_weight')}
                 </label>
                 <input
                   type="number"
@@ -346,7 +384,7 @@ export default function OnboardingPage() {
 
               <div>
                 <label className="text-xs text-gray-500 font-medium mb-1.5 block">
-                  Yosh
+                  {t('onboarding_age')}
                 </label>
                 <input
                   type="number"
@@ -357,19 +395,38 @@ export default function OnboardingPage() {
                 />
               </div>
 
+              {/* Beautiful Gender Selection Cards */}
               <div>
                 <label className="text-xs text-gray-500 font-medium mb-1.5 block">
-                  Jins
+                  {t('onboarding_gender')}
                 </label>
-                <select
-                  value={onboardingData.gender}
-                  onChange={(e) => setOnboardingData({ gender: e.target.value as Gender })}
-                  className="w-full bg-[#111] border border-white/10 text-white px-4 py-3 rounded-xl text-sm focus:outline-none focus:border-[#c8f55a] transition-colors"
-                >
-                  <option value="">Tanlang</option>
-                  <option value="male">Erkak</option>
-                  <option value="female">Ayol</option>
-                </select>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setOnboardingData({ gender: 'male' as Gender })}
+                    className={`flex-1 py-3 rounded-xl text-center transition-all duration-300 ${
+                      onboardingData.gender === 'male'
+                        ? 'bg-gradient-to-br from-blue-500/20 to-cyan-500/10 border-2 border-blue-400 text-blue-300 shadow-[0_0_20px_rgba(59,130,246,0.2)] scale-[1.02]'
+                        : 'bg-[#111] border border-white/10 text-gray-400 hover:border-white/20'
+                    }`}
+                  >
+                    <div className="text-2xl mb-0.5">🚹</div>
+                    <div className="text-[11px] font-semibold">{t('onboarding_gender_male')}</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setOnboardingData({ gender: 'female' as Gender })}
+                    className={`flex-1 py-3 rounded-xl text-center transition-all duration-300 ${
+                      onboardingData.gender === 'female'
+                        ? 'bg-gradient-to-br from-pink-500/20 to-rose-500/10 border-2 border-pink-400 text-pink-300 shadow-[0_0_20px_rgba(236,72,153,0.2)] scale-[1.02]'
+                        : 'bg-[#111] border border-white/10 text-gray-400 hover:border-white/20'
+                    }`}
+                  >
+                    <div className="text-2xl mb-0.5">🚺</div>
+                    <div className="text-[11px] font-semibold">{t('onboarding_gender_female')}</div>
+                  </button>
+                </div>
               </div>
 
               <div className="col-span-2 mt-2">
@@ -378,9 +435,9 @@ export default function OnboardingPage() {
 
                   <div className="relative z-10 flex items-center justify-between mb-3">
                     <div>
-                      <h3 className="text-white font-semibold text-lg">AI Body Scan</h3>
+                      <h3 className="text-white font-semibold text-lg">{t('onboarding_ai_scan')}</h3>
                       <p className="text-xs text-gray-500">
-                        Rasm yuklang, AI tana turini taxminiy baholaydi
+                        {t('onboarding_ai_scan_desc')}
                       </p>
                     </div>
                     <div className="h-11 w-11 rounded-2xl bg-[#c8f55a]/10 border border-[#c8f55a]/20 flex items-center justify-center text-[#c8f55a] text-xl">
@@ -401,19 +458,20 @@ export default function OnboardingPage() {
                         <div className="mx-auto mb-3 h-16 w-16 rounded-2xl bg-black/30 border border-white/10 flex items-center justify-center text-3xl">
                           📷
                         </div>
-                        <div className="text-white font-semibold mb-1">Rasm tanlash</div>
+                        <div className="text-white font-semibold mb-1">{t('onboarding_pick_image')}</div>
                         <div className="text-xs text-gray-500 mb-4">
-                          PNG, JPG yoki JPEG format
+                          {t('onboarding_image_format')}
                         </div>
 
                         <div className="inline-flex items-center gap-2 rounded-full bg-[#c8f55a] text-black font-semibold px-5 py-3 text-sm shadow-[0_0_20px_rgba(200,245,90,0.25)]">
-                          <span>AI Scan boshlash</span>
+                          <span>{t('onboarding_start_scan')}</span>
                         </div>
                       </div>
                     </label>
                   ) : (
                     <div className="relative z-10 space-y-4">
                       <div className="relative rounded-[24px] overflow-hidden border border-[#c8f55a]/20 bg-black">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={preview}
                           alt="Preview"
@@ -424,7 +482,7 @@ export default function OnboardingPage() {
 
                         <div className="absolute top-3 left-3">
                           <span className="text-[10px] px-3 py-1.5 rounded-full bg-black/70 text-white border border-white/10 tracking-[0.2em]">
-                            BEFORE
+                            {t('scan_before')}
                           </span>
                         </div>
 
@@ -437,7 +495,7 @@ export default function OnboardingPage() {
                               onChange={(e) => handleImageChange(e.target.files?.[0] || null)}
                             />
                             <span className="text-[10px] px-3 py-2 rounded-full bg-black/70 text-white border border-white/10">
-                              Almashtirish
+                              {t('onboarding_replace')}
                             </span>
                           </label>
 
@@ -446,7 +504,7 @@ export default function OnboardingPage() {
                             onClick={removeImage}
                             className="text-[10px] px-3 py-2 rounded-full bg-red-500/20 text-red-300 border border-red-400/20"
                           >
-                            Olib tashlash
+                            {t('onboarding_remove')}
                           </button>
                         </div>
 
@@ -458,32 +516,32 @@ export default function OnboardingPage() {
 
                         <div className="absolute bottom-3 left-3 right-3 grid grid-cols-3 gap-2">
                           <div className="rounded-xl border border-white/10 bg-black/60 p-2 text-center">
-                            <div className="text-[10px] text-gray-400">Scan</div>
-                            <div className="text-xs text-white font-medium">Ready</div>
+                            <div className="text-[10px] text-gray-400">{t('scan_vision')}</div>
+                            <div className="text-xs text-white font-medium">{t('scan_ready')}</div>
                           </div>
                           <div className="rounded-xl border border-white/10 bg-black/60 p-2 text-center">
-                            <div className="text-[10px] text-gray-400">Body Type</div>
-                            <div className="text-xs text-white font-medium">Auto Detect</div>
+                            <div className="text-[10px] text-gray-400">{t('scan_body_type')}</div>
+                            <div className="text-xs text-white font-medium">{t('scan_auto_detect')}</div>
                           </div>
                           <div className="rounded-xl border border-white/10 bg-black/60 p-2 text-center">
-                            <div className="text-[10px] text-gray-400">Fat %</div>
-                            <div className="text-xs text-white font-medium">Estimate</div>
+                            <div className="text-[10px] text-gray-400">{t('scan_fat')}</div>
+                            <div className="text-xs text-white font-medium">{t('scan_estimate')}</div>
                           </div>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
                         <div className="rounded-2xl border border-white/10 bg-[#111] p-4">
-                          <div className="text-xs text-gray-500 mb-1">Before</div>
-                          <div className="text-white font-medium">Yuklangan rasm</div>
-                          <div className="text-xs text-gray-500 mt-1">AI tanani tahlil qiladi</div>
+                          <div className="text-xs text-gray-500 mb-1">{t('scan_before')}</div>
+                          <div className="text-white font-medium">{t('scan_uploaded')}</div>
+                          <div className="text-xs text-gray-500 mt-1">{t('scan_ai_analyze')}</div>
                         </div>
 
                         <div className="rounded-2xl border border-[#c8f55a]/20 bg-[#c8f55a]/8 p-4 shadow-[0_0_20px_rgba(200,245,90,0.05)]">
-                          <div className="text-xs text-gray-500 mb-1">After</div>
-                          <div className="text-[#c8f55a] font-medium">Smart tahlil</div>
+                          <div className="text-xs text-gray-500 mb-1">{t('scan_after')}</div>
+                          <div className="text-[#c8f55a] font-medium">{t('scan_smart')}</div>
                           <div className="text-xs text-gray-400 mt-1">
-                            Body type, BMI va taxminiy fat%
+                            {t('scan_smart_desc')}
                           </div>
                         </div>
                       </div>
@@ -497,7 +555,7 @@ export default function OnboardingPage() {
               onClick={handleNextStep}
               className="w-full bg-[#c8f55a] text-black font-semibold py-4 rounded-full mt-2 hover:opacity-90 transition-opacity shadow-[0_0_25px_rgba(200,245,90,0.18)]"
             >
-              Davom etish →
+              {t('continue')}
             </button>
           </div>
         )}
@@ -508,10 +566,10 @@ export default function OnboardingPage() {
               className="text-3xl font-bold text-white mb-2"
               style={{ fontFamily: 'var(--font-clash)' }}
             >
-              Maqsadingiz nima?
+              {t('onboarding_goal_title')}
             </h2>
 
-            <p className="text-gray-500 mb-8">AI shunga mos reja tuzadi</p>
+            <p className="text-gray-500 mb-8">{t('onboarding_goal_subtitle')}</p>
 
             <div className="grid grid-cols-2 gap-3 mb-6">
               {GOALS.map((g) => (
@@ -524,7 +582,7 @@ export default function OnboardingPage() {
                     }`}
                 >
                   <span className="text-2xl block mb-2">{g.emoji}</span>
-                  <span className="text-sm font-medium">{g.label}</span>
+                  <span className="text-sm font-medium">{t(g.labelKey)}</span>
                 </button>
               ))}
             </div>
@@ -534,14 +592,14 @@ export default function OnboardingPage() {
               disabled={!onboardingData.goal || analyzing}
               className="w-full bg-[#c8f55a] text-black font-semibold py-4 rounded-full hover:opacity-90 transition-opacity disabled:opacity-30 shadow-[0_0_25px_rgba(200,245,90,0.18)]"
             >
-              {analyzing ? 'Yuklanmoqda...' : 'AI tahlilini boshlash 🚀'}
+              {analyzing ? t('loading') : t('onboarding_start_analysis')}
             </button>
 
             <button
               onClick={() => setStep(1)}
               className="w-full text-gray-500 py-3 text-sm mt-2 hover:text-white transition-colors"
             >
-              ← Orqaga
+              {t('back')}
             </button>
           </div>
         )}

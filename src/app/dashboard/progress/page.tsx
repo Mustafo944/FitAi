@@ -3,7 +3,9 @@
 
 import { useMemo, useState } from 'react'
 import { useUserStore } from '@/store/userStore'
+import { useTranslation } from '@/lib/i18n'
 import Link from 'next/link'
+import BottomNav from '@/components/BottomNav'
 import {
   LineChart,
   Line,
@@ -22,35 +24,9 @@ interface CustomTooltipProps {
   label?: string
 }
 
-const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
-  if (!active || !payload?.length) return null
-
-  const estimatedValue = payload.find((p) => p.name === 'taxmin')?.value
-  const actualValue = payload.find((p) => p.name === 'haqiqiy')?.value
-
-  return (
-    <div className="bg-[#1a1a1a] border border-white/10 rounded-xl px-3 py-2 text-sm">
-      <p className="text-gray-400 text-xs mb-1">{label}</p>
-
-      {payload.map((p) =>
-        p.value !== null ? (
-          <p key={p.name} style={{ color: p.color }} className="font-medium">
-            {p.name === 'taxmin' ? 'Taxmin' : 'Haqiqiy'}: {p.value} kg
-          </p>
-        ) : null
-      )}
-
-      {typeof estimatedValue === 'number' && typeof actualValue === 'number' && (
-        <p className="text-xs text-gray-500 mt-1">
-          Farq: {(actualValue - estimatedValue).toFixed(1)} kg
-        </p>
-      )}
-    </div>
-  )
-}
-
 export default function ProgressPage() {
   const { analysis, progress, addProgress, onboardingData } = useUserStore()
+  const { t } = useTranslation()
   const [actualWeight, setActualWeight] = useState('')
 
   const startWeight =
@@ -97,12 +73,14 @@ export default function ProgressPage() {
 
   const totalWeeks = 12
   const remainingWeeks = Math.max(totalWeeks - latestWeek, 0)
-  const coachText =
-    progressStatus === 'ahead'
-      ? "Zo‘r! Siz rejalashtirilgan natijadan oldindasiz 🔥 Shu tempni saqlang."
-      : progressStatus === 'behind'
-        ? "Siz reja bo‘yicha ortda qolyapsiz ⚠️ Ovqatlanish va mashqlarni kuchaytirish kerak."
-        : "Siz to‘g‘ri ketayapsiz ✅ Shu ritmni davom ettiring."
+  
+  const getCoachText = () => {
+    if (progressStatus === 'ahead') return 'Zo‘r! Siz rejalashtirilgan natijadan oldindasiz 🔥 Shu tempni saqlang.'
+    if (progressStatus === 'behind') return 'Siz reja bo‘yicha ortda qolyapsiz ⚠️ Ovqatlanish va mashqlarni kuchaytirish kerak.'
+    return 'Siz to‘g‘ri ketayapsiz ✅ Shu ritmni davom ettiring.'
+  }
+
+  const coachText = getCoachText()
   const targetWeight = parseFloat((startWeight - lossPerMonth * 3).toFixed(1))
 
   const handleAddActualWeight = () => {
@@ -124,17 +102,44 @@ export default function ProgressPage() {
     setActualWeight('')
   }
 
+  const CustomTooltipInner = ({ active, payload, label }: CustomTooltipProps) => {
+    if (!active || !payload?.length) return null
+  
+    const estimatedValue = payload.find((p) => p.name === 'taxmin')?.value
+    const actualValue = payload.find((p) => p.name === 'haqiqiy')?.value
+  
+    return (
+      <div className="bg-[#1a1a1a] border border-white/10 rounded-xl px-3 py-2 text-sm">
+        <p className="text-gray-400 text-xs mb-1">{label}</p>
+  
+        {payload.map((p) =>
+          p.value !== null ? (
+            <p key={p.name} style={{ color: p.color }} className="font-medium">
+              {p.name === 'taxmin' ? 'Taxmin' : 'Haqiqiy'}: {p.value} kg
+            </p>
+          ) : null
+        )}
+  
+        {typeof estimatedValue === 'number' && typeof actualValue === 'number' && (
+          <p className="text-xs text-gray-500 mt-1">
+            Farq: {(actualValue - estimatedValue).toFixed(1)} kg
+          </p>
+        )}
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-[#0a0a0a] text-white pb-24 md:pb-8">
       <div className="border-b border-white/8 px-4 py-4 flex items-center gap-3">
         <Link href="/dashboard" className="text-gray-400 hover:text-white transition-colors text-lg">
           ←
         </Link>
         <div>
           <h1 className="font-bold text-lg" style={{ fontFamily: 'var(--font-clash)' }}>
-            Progress
+            {t('nav_progress')}
           </h1>
-          <p className="text-xs text-gray-500">Vazn progress grafigi</p>
+          <p className="text-xs text-gray-500">{t('dash_progress')}</p>
         </div>
       </div>
 
@@ -144,8 +149,8 @@ export default function ProgressPage() {
             <div className="text-2xl font-bold text-white mb-1" style={{ fontFamily: 'var(--font-clash)' }}>
               {startWeight}
             </div>
-            <div className="text-xs text-gray-500 uppercase tracking-wider">
-              Boshlang‘ich kg
+            <div className="text-[10px] text-gray-500 uppercase tracking-wider">
+              {t('onboarding_weight')} kg
             </div>
           </div>
 
@@ -153,7 +158,7 @@ export default function ProgressPage() {
             <div className="text-2xl font-bold text-[#c8f55a] mb-1" style={{ fontFamily: 'var(--font-clash)' }}>
               ~{lossPerMonth}
             </div>
-            <div className="text-xs text-gray-500 uppercase tracking-wider">
+            <div className="text-[10px] text-gray-500 uppercase tracking-wider">
               Oyda kg taxmin
             </div>
           </div>
@@ -162,7 +167,7 @@ export default function ProgressPage() {
             <div className="text-2xl font-bold text-[#ff6b35] mb-1" style={{ fontFamily: 'var(--font-clash)' }}>
               {targetWeight}
             </div>
-            <div className="text-xs text-gray-500 uppercase tracking-wider">
+            <div className="text-[10px] text-gray-500 uppercase tracking-wider">
               3 oyda maqsad
             </div>
           </div>
@@ -181,7 +186,7 @@ export default function ProgressPage() {
               {progressStatus === 'behind' && '⚠️'}
               {progressStatus === 'on_track' && '✅'}
             </div>
-            <div className="text-xs text-gray-500 uppercase tracking-wider">
+            <div className="text-[10px] text-gray-500 uppercase tracking-wider">
               Status
             </div>
           </div>
@@ -210,7 +215,7 @@ export default function ProgressPage() {
               {remainingWeeks}
             </div>
             <div className="text-xs text-gray-500 uppercase tracking-wider">
-              Hafta qoldi
+              {t('dash_weeks')} qoldi
             </div>
           </div>
         </div>
@@ -248,7 +253,7 @@ export default function ProgressPage() {
                 axisLine={false}
                 domain={['auto', 'auto']}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<CustomTooltipInner />} />
               <ReferenceLine
                 y={targetWeight}
                 stroke="#ff6b35"
@@ -311,7 +316,7 @@ export default function ProgressPage() {
             </div>
 
             <div className="bg-black/20 border border-white/5 rounded-xl p-3 text-center">
-              <div className="text-xs text-gray-500">Hafta</div>
+              <div className="text-xs text-gray-500">{t('dash_weeks')}</div>
               <div className="text-white font-semibold">{latestWeek}</div>
             </div>
 
@@ -384,10 +389,12 @@ export default function ProgressPage() {
             Haftalik rasm yuklash, AI taqqoslash, aniq o‘zgarish
           </p>
           <button className="bg-[#c8f55a] text-black text-sm font-semibold px-6 py-2.5 rounded-full hover:opacity-90 transition-opacity">
-            Pro — $4.99/oy
+            {t('dash_pro_btn')}
           </button>
         </div>
       </div>
+
+      <BottomNav />
     </div>
   )
 }

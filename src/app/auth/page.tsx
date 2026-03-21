@@ -4,11 +4,14 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import { useTranslation } from '@/lib/i18n'
+import { useUserStore } from '@/store/userStore'
 import toast from 'react-hot-toast'
 
 export default function AuthPage() {
   const router = useRouter()
   const supabase = createClient()
+  const { t } = useTranslation()
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -23,27 +26,36 @@ export default function AuthPage() {
     if (errorMsg) {
       setTimeout(() => {
         if (errorMsg === 'missing_keys') toast.error("Supabase kalitlari topilmadi. .env.local'ni tekshiring.")
-        else if (errorMsg === 'exchange_failed') toast.error("Avtorizatsiya xatosi yuz berdi. Qaytadan urinib ko'ring.")
-        else if (errorMsg === 'no_code') toast.error("Kirish bekor qilindi yoki xato yuz berdi.")
+        else if (errorMsg === 'exchange_failed') toast.error(t('auth_error_generic'))
+        else if (errorMsg === 'no_code') toast.error(t('auth_error_generic'))
         else toast.error(decodeURIComponent(errorMsg))
         
         // URL'ni tozalash
         window.history.replaceState({}, document.title, window.location.pathname)
       }, 100)
     }
-  }, [])
+  }, [t])
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
-    if (!email || !password) return toast.error('Email va parol kiriting')
-    if (mode === 'register' && !name) return toast.error('Ismingizni kiriting')
+    if (!email || !password) return toast.error(t('val_fill_all'))
+    if (mode === 'register' && !name) return toast.error(t('val_fill_all'))
     if (password.length < 6) return toast.error('Parol kamida 6 ta belgi')
 
     setLoading(true)
     try {
       if (mode === 'login') {
-        const { error } = await supabase.auth.signInWithPassword({ email, password })
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
+        
+        // Restore data from user_metadata if exists
+        const meta = data.user?.user_metadata
+        if (meta?.analysis) {
+          useUserStore.getState().setAnalysis(meta.analysis)
+          if (meta.dietPlan) useUserStore.getState().setDietPlan(meta.dietPlan)
+          if (meta.workoutPlan) useUserStore.getState().setWorkoutPlan(meta.workoutPlan)
+        }
+        
         router.push('/dashboard')
         router.refresh()
       } else {
@@ -53,17 +65,17 @@ export default function AuthPage() {
           options: { data: { full_name: name } }
         })
         if (error) throw error
-        toast.success('Ro\'yxatdan o\'tdingiz! Tasdiqlash xati yuborilgan bo\'lishi mumkin.')
+        toast.success(t('auth_success_register'))
         setMode('login')
       }
     } catch (err: unknown) {
       console.error('Auth error:', err)
       const errMsg = err instanceof Error ? err.message : ''
       const msg = errMsg.includes('Invalid login')
-        ? 'Email yoki parol noto\'g\'ri'
+        ? t('auth_error_invalid')
         : errMsg.includes('already registered')
-        ? 'Bu email allaqachon ro\'yxatdan o\'tgan'
-        : errMsg || 'Xato yuz berdi'
+        ? t('auth_error_exists')
+        : errMsg || t('auth_error_generic')
       toast.error(msg)
     } finally {
       setLoading(false)
@@ -72,7 +84,7 @@ export default function AuthPage() {
 
   const handleGoogle = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo: `${location.origin}/auth/callback` },
       })
@@ -80,9 +92,9 @@ export default function AuthPage() {
     } catch (err: unknown) {
       console.error('Google Auth error:', err)
       if (err instanceof Error && err.message?.includes('provider is not enabled')) {
-        toast.error("Google orqali kirish hozircha o'chiq. Supabase Dashboard'dan Google Provider'ni yoqing.", { duration: 5000 })
+        toast.error(t('auth_error_google_disabled'), { duration: 5000 })
       } else {
-        toast.error("Google orqali kirishda xato yuz berdi")
+        toast.error(t('auth_error_google'))
       }
     }
   }
@@ -97,7 +109,7 @@ export default function AuthPage() {
             Fit<span style={{ color: '#c8f55a' }}>AI</span>
           </div>
           <p className="text-gray-500 text-sm">
-            {mode === 'login' ? 'Xush kelibsiz!' : 'Yangi hisob yarating'}
+            {mode === 'login' ? t('auth_title_login') : t('auth_title_register')}
           </p>
         </div>
 
@@ -116,7 +128,7 @@ export default function AuthPage() {
                   color: mode === m ? '#0a0a0a' : '#666',
                 }}
               >
-                {m === 'login' ? 'Kirish' : 'Ro\'yxatdan o\'tish'}
+                {m === 'login' ? t('auth_login') : t('auth_register')}
               </button>
             ))}
           </div>
@@ -125,7 +137,7 @@ export default function AuthPage() {
           <div className="space-y-3">
             {mode === 'register' && (
               <div>
-                <label className="text-xs text-gray-500 font-medium block mb-1.5">Ismingiz</label>
+                <label className="text-xs text-gray-500 font-medium block mb-1.5">{t('settings_name')}</label>
                 <input
                   type="text" placeholder="Abdulloh"
                   value={name} onChange={(e) => setName(e.target.value)}
@@ -136,7 +148,7 @@ export default function AuthPage() {
             )}
 
             <div>
-              <label className="text-xs text-gray-500 font-medium block mb-1.5">Email</label>
+              <label className="text-xs text-gray-500 font-medium block mb-1.5">{t('auth_email')}</label>
               <input
                 type="email" placeholder="siz@email.com"
                 value={email} onChange={(e) => setEmail(e.target.value)}
@@ -146,7 +158,7 @@ export default function AuthPage() {
             </div>
 
             <div>
-              <label className="text-xs text-gray-500 font-medium block mb-1.5">Parol</label>
+              <label className="text-xs text-gray-500 font-medium block mb-1.5">{t('auth_password')}</label>
               <input
                 type="password" placeholder="••••••••"
                 value={password} onChange={(e) => setPassword(e.target.value)}
@@ -162,13 +174,13 @@ export default function AuthPage() {
             className="w-full mt-5 py-3.5 rounded-full font-semibold text-sm transition-opacity disabled:opacity-50"
             style={{ background: '#c8f55a', color: '#0a0a0a' }}
           >
-            {loading ? 'Yuklanmoqda...' : mode === 'login' ? 'Kirish →' : 'Hisob yaratish →'}
+            {loading ? t('loading') : mode === 'login' ? t('auth_login') + ' →' : t('auth_register') + ' →'}
           </button>
 
           {/* Divider */}
           <div className="flex items-center gap-3 my-4">
             <div className="flex-1 h-px bg-white/8" />
-            <span className="text-xs text-gray-600">yoki</span>
+            <span className="text-xs text-gray-600">{t('auth_or')}</span>
             <div className="flex-1 h-px bg-white/8" />
           </div>
 
@@ -183,17 +195,10 @@ export default function AuthPage() {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
-            Google bilan kirish
+            {t('auth_google')}
           </button>
         </div>
 
-        <p className="text-center text-xs text-gray-600 mt-4">
-          Kirish orqali{' '}
-          <span className="text-gray-500 cursor-pointer hover:text-white transition-colors">
-            foydalanish shartlariga
-          </span>{' '}
-          rozilik bildirasiz
-        </p>
       </div>
     </div>
   )

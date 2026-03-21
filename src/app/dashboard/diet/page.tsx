@@ -4,19 +4,26 @@
 import { useState } from 'react'
 import { useUserStore } from '@/store/userStore'
 import { useRouter } from 'next/navigation'
+import { useTranslation } from '@/lib/i18n'
 import type { Meal, FoodItem } from '@/types'
 import Link from 'next/link'
+import BottomNav from '@/components/BottomNav'
 
 const mealIcons: Record<string, string> = {
   'Nonushta': '🌅',
+  'Завтрак': '🌅',
   'Tushlik': '☀️',
+  'Обед': '☀️',
   'Kechki ovqat': '🌙',
+  'Ужин': '🌙',
   'Snack': '🍎',
+  'Перекус': '🍎',
 }
 
 export default function DietPage() {
   const router = useRouter()
   const { dietPlan } = useUserStore()
+  const { t } = useTranslation()
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null)
   const [checkedFoods, setCheckedFoods] = useState<Set<string>>(new Set())
 
@@ -54,13 +61,13 @@ export default function DietPage() {
   const caloriePercent = Math.min(100, Math.round((totalEaten / today.total_calories) * 100))
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-[#0a0a0a] text-white pb-24 md:pb-8">
       {/* Header */}
       <div className="border-b border-white/8 px-4 py-4 flex items-center gap-3">
         <Link href="/dashboard" className="text-gray-400 hover:text-white transition-colors text-lg">←</Link>
         <div>
-          <h1 className="font-bold text-lg" style={{ fontFamily: 'var(--font-clash)' }}>Bugungi dieta</h1>
-          <p className="text-xs text-gray-500">1-kun · {today.total_calories} kkal maqsad</p>
+          <h1 className="font-bold text-lg" style={{ fontFamily: 'var(--font-clash)' }}>{t('dash_today_diet')}</h1>
+          <p className="text-xs text-gray-500">{t('dash_1day')} · {today.total_calories} {t('diet_kcal')}</p>
         </div>
       </div>
 
@@ -73,11 +80,11 @@ export default function DietPage() {
               <div className="text-3xl font-bold text-[#c8f55a]" style={{ fontFamily: 'var(--font-clash)' }}>
                 {totalEaten}
               </div>
-              <div className="text-xs text-gray-500">kkal iste&apos;mol qilindi</div>
+              <div className="text-xs text-gray-500">{t('diet_kcal')}</div>
             </div>
             <div className="text-right">
               <div className="text-lg font-bold text-white">{today.total_calories - totalEaten}</div>
-              <div className="text-xs text-gray-500">kkal qoldi</div>
+              <div className="text-xs text-gray-500">qoldi</div>
             </div>
           </div>
           <div className="w-full bg-white/8 rounded-full h-2">
@@ -92,12 +99,12 @@ export default function DietPage() {
           <div className="flex justify-between mt-2">
             <span className="text-xs text-gray-600">{caloriePercent}%</span>
             <div className="flex gap-3 text-xs text-gray-500">
-              <span>💧 {today.water_intake}L suv</span>
+              <span>💧 {today.water_intake} {t('diet_liters')}</span>
             </div>
           </div>
         </div>
 
-        {/* Ovqatlar ro&apos;yxati */}
+        {/* Ovqatlar ro'yxati */}
         <div className="space-y-3">
           {today.meals?.map((meal: Meal, mi: number) => (
             <div key={mi} className="bg-[#111] border border-white/8 rounded-2xl overflow-hidden">
@@ -114,7 +121,7 @@ export default function DietPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-[#c8f55a]">{meal.total_calories} kkal</span>
+                  <span className="text-sm font-medium text-[#c8f55a]">{meal.total_calories} {t('diet_kcal')}</span>
                   <span className="text-gray-600 text-xs">{selectedMeal?.name === meal.name ? '▲' : '▼'}</span>
                 </div>
               </button>
@@ -126,54 +133,51 @@ export default function DietPage() {
                   <div className="pt-3 space-y-2 mb-4">
                     {meal.foods.map((food: FoodItem, fi: number) => {
                       const key = `${meal.name}-${fi}`
-                        // ESLint fix: Added explicit return for the map function since it was using curly braces with implicit JSX return
-                        const checked = checkedFoods.has(key)
-                        return (
-                          <div
-                            key={fi}
-                            onClick={() => toggleFood(key)}
-                            className="flex items-center justify-between py-2 cursor-pointer group"
-                          >
-                            <div className="flex items-center gap-3">
-                              <div
-                                className="w-5 h-5 rounded-md border flex items-center justify-center transition-all flex-shrink-0"
-                                style={{
-                                  background: checked ? '#c8f55a' : 'transparent',
-                                  borderColor: checked ? '#c8f55a' : 'rgba(255,255,255,0.15)',
-                                }}
-                              >
-                                {checked && <span className="text-black text-xs font-bold">✓</span>}
-                              </div>
-                              <div>
-                                <div className={`text-sm font-medium transition-colors ${checked ? 'text-gray-500 line-through' : 'text-white'}`}>
-                                  {food.name}
-                                </div>
-                                <div className="text-xs text-gray-600">{food.amount}</div>
-                              </div>
+                      const checked = checkedFoods.has(key)
+                      return (
+                        <div
+                          key={fi}
+                          onClick={() => toggleFood(key)}
+                          className="flex items-center justify-between py-2 cursor-pointer group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="w-5 h-5 rounded-md border flex items-center justify-center transition-all flex-shrink-0"
+                              style={{
+                                background: checked ? '#c8f55a' : 'transparent',
+                                borderColor: checked ? '#c8f55a' : 'rgba(255,255,255,0.15)',
+                              }}
+                            >
+                              {checked && <span className="text-black text-xs font-bold">✓</span>}
                             </div>
-                            <div className="text-right">
-                              <div className="text-sm font-medium text-gray-300">{food.calories} kkal</div>
-                              <div className="text-xs text-gray-600">
-                                P:{food.protein}g · K:{food.carbs}g · Y:{food.fat}g
+                            <div>
+                              <div className={`text-sm font-medium transition-colors ${checked ? 'text-gray-500 line-through' : 'text-white'}`}>
+                                {food.name}
                               </div>
+                              <div className="text-xs text-gray-600">{food.amount}</div>
                             </div>
                           </div>
-                        )
-                      }
-                    )}
+                          <div className="text-right">
+                            <div className="text-sm font-medium text-gray-300">{food.calories} kkal</div>
+                            <div className="text-xs text-gray-600">
+                              P:{food.protein}g · K:{food.carbs}g · Y:{food.fat}g
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
 
                   {/* Retsept */}
                   {meal.recipe && meal.recipe.steps.length > 0 && (
                     <div className="bg-white/4 rounded-xl p-4">
                       <div className="flex items-center justify-between mb-3">
-                        <div className="text-xs font-semibold text-[#c8f55a]">📖 Retsept</div>
-                        <div className="text-xs text-gray-500">⏱ {meal.recipe.cook_time} daqiqa</div>
+                        <div className="text-xs font-semibold text-[#c8f55a]">📖 Recipe / Retsept</div>
+                        <div className="text-xs text-gray-500">⏱ {meal.recipe.cook_time} {t('workout_min')}</div>
                       </div>
 
                       {/* Ingredientlar */}
                       <div className="mb-3">
-                        <div className="text-xs text-gray-500 mb-1.5 font-medium">Ingredientlar:</div>
                         <div className="flex flex-wrap gap-1.5">
                           {meal.recipe.ingredients.map((ing: string, i: number) => (
                             <span key={i} className="text-xs bg-white/6 px-2.5 py-1 rounded-lg text-gray-300">
@@ -185,7 +189,6 @@ export default function DietPage() {
 
                       {/* Bosqichlar */}
                       <div>
-                        <div className="text-xs text-gray-500 mb-1.5 font-medium">Tayyorlash:</div>
                         <ol className="space-y-1.5">
                           {meal.recipe.steps.map((step: string, i: number) => (
                             <li key={i} className="flex gap-2 text-xs text-gray-300">
@@ -207,16 +210,18 @@ export default function DietPage() {
         <div className="mt-6 bg-[#c8f55a]/8 border border-[#c8f55a]/20 rounded-2xl p-5 text-center">
           <div className="text-lg mb-1">🔒</div>
           <h3 className="font-bold mb-1" style={{ fontFamily: 'var(--font-clash)' }}>
-            30 kunlik dieta reja
+            {t('dash_pro_title')}
           </h3>
           <p className="text-gray-400 text-xs mb-3">
-            Har kunlik menyu, retseptlar va kaloriya hisobi
+            {t('dash_pro_desc')}
           </p>
           <button className="bg-[#c8f55a] text-black text-sm font-semibold px-6 py-2.5 rounded-full hover:opacity-90 transition-opacity">
-            Pro — $4.99/oy
+            {t('dash_pro_btn')}
           </button>
         </div>
       </div>
+
+      <BottomNav />
     </div>
   )
 }

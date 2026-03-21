@@ -1,6 +1,7 @@
 // src/app/layout.tsx
 import type { Metadata } from 'next'
 import { Toaster } from 'react-hot-toast'
+import LanguageToggle from '@/components/LanguageToggle'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             },
           }}
         />
+        <LanguageToggle />
       </body>
     </html>
   )

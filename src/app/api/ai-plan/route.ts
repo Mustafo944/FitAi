@@ -100,6 +100,7 @@ export async function POST(req: NextRequest) {
     let age = 0
     let gender = ''
     let goal = ''
+    let locale = 'uz'
 
     if (contentType.includes('multipart/form-data')) {
       const formData = await req.formData()
@@ -109,6 +110,7 @@ export async function POST(req: NextRequest) {
       age = Number(formData.get('age'))
       gender = String(formData.get('gender') || '').trim()
       goal = String(formData.get('goal') || '').trim()
+      locale = String(formData.get('locale') || 'uz').trim()
     } else {
       const body = await req.json()
       height = Number(body.height)
@@ -116,6 +118,7 @@ export async function POST(req: NextRequest) {
       age = Number(body.age)
       gender = String(body.gender || '').trim()
       goal = String(body.goal || '').trim()
+      locale = String(body.locale || 'uz').trim()
     }
 
     if (!height || !weight || !age || !gender || !goal) {
@@ -188,6 +191,8 @@ Sening vazifang:
 - belly_fat: low | medium | high
 - muscle_visibility: low | medium | high
 - posture: good | average | bad
+
+MUHIM: BARCHA MATNLAR (ai_summary, recommendations, ko'rsatmalar) FAQAT ${locale === 'ru' ? 'RUS (Russian)' : 'O\'ZBEK (Uzbek)'} tilida yozilishi shart. Boshqa tillardan foydalanma.
 
 Foydalanuvchi:
 - Bo'yi: ${height} sm
@@ -375,11 +380,11 @@ Javob formati:
     }
 
     if (goal === 'maintain' || goal === 'healthy_life') {
-      coachMessage = "Hozirgi formani saqlash uchun ovqatlanish va yengil mashqlar balansini ushlang."
+      coachMessage = locale === 'ru' ? "Соблюдайте баланс питания и легких тренировок, чтобы сохранить текущую форму." : "Hozirgi formani saqlash uchun ovqatlanish va yengil mashqlar balansini ushlang."
     }
 
     if (features.posture === 'bad') {
-      coachMessage += " Posturani yaxshilash uchun core va bel mashqlarini qo'shing."
+      coachMessage += locale === 'ru' ? " Для улучшения осанки добавьте упражнения на кор и спину." : " Posturani yaxshilash uchun core va bel mashqlarini qo'shing."
     }
 
     const analysis = {
@@ -410,16 +415,16 @@ Javob formati:
         water_intake: parseFloat((weight * 0.033).toFixed(1)),
         meals: [
           {
-            name: 'Nonushta',
+            name: locale === 'ru' ? 'Завтрак' : 'Nonushta',
             time: '08:00',
             total_calories: Math.round(targetCalories * 0.25),
             foods: [
               {
-                name: 'Tuxum',
+                name: locale === 'ru' ? 'Яйца' : 'Tuxum',
                 amount:
                   goal === 'muscle_gain'
-                    ? `${Math.max(2, Math.round(weight / 20))} dona`
-                    : '2 dona',
+                    ? `${Math.max(2, Math.round(weight / 20))} ${locale === 'ru' ? 'шт' : 'dona'}`
+                    : `2 ${locale === 'ru' ? 'шт' : 'dona'}`,
                 calories: goal === 'muscle_gain' ? 210 : 140,
                 protein: goal === 'muscle_gain' ? 18 : 12,
                 carbs: 1,
@@ -427,18 +432,18 @@ Javob formati:
               },
             ],
             recipe: {
-              ingredients: ['Tuxum', "1 choy qoshiq yog'", 'Tuz'],
-              steps: ['Tuxumni pishiring'],
+              ingredients: locale === 'ru' ? ['Яйца', '1 ч.л. масла', 'Соль'] : ['Tuxum', "1 choy qoshiq yog'", 'Tuz'],
+              steps: [locale === 'ru' ? 'Приготовьте яйца' : 'Tuxumni pishiring'],
               cook_time: 5,
             },
           },
           {
-            name: 'Tushlik',
+            name: locale === 'ru' ? 'Обед' : 'Tushlik',
             time: '13:00',
             total_calories: Math.round(targetCalories * 0.35),
             foods: [
               {
-                name: goal === 'weight_loss' ? 'Tovuq ko‘kragi' : 'Mol go‘shti',
+                name: goal === 'weight_loss' ? (locale === 'ru' ? 'Куриная грудка' : 'Tovuq ko‘kragi') : (locale === 'ru' ? 'Говядина' : 'Mol go‘shti'),
                 amount: `${proteinPerMeal}g`,
                 calories: Math.round(proteinPerMeal * 2),
                 protein: Math.round(proteinPerMeal * 0.25),
@@ -447,8 +452,8 @@ Javob formati:
               },
             ],
             recipe: {
-              ingredients: ['Go‘sht', 'Sabzavot', 'Tuz'],
-              steps: ['Pishiring va garnir bilan bering'],
+              ingredients: locale === 'ru' ? ['Мясо', 'Овощи', 'Соль'] : ['Go‘sht', 'Sabzavot', 'Tuz'],
+              steps: [locale === 'ru' ? 'Приготовьте и подавайте с гарниром' : 'Pishiring va garnir bilan bering'],
               cook_time: 25,
             },
           },
@@ -461,10 +466,10 @@ Javob formati:
         day: 1,
         title:
           goal === 'weight_loss'
-            ? "Yog' yoqish mashqi"
+            ? (locale === 'ru' ? 'Жиросжигающая тренировка' : "Yog' yoqish mashqi")
             : goal === 'muscle_gain'
-              ? 'Kuch mashqi'
-              : 'Balans mashqi',
+              ? (locale === 'ru' ? 'Силовая тренировка' : 'Kuch mashqi')
+              : (locale === 'ru' ? 'Тренировка на баланс' : 'Balans mashqi'),
         duration: goal === 'muscle_gain' ? 60 : 45,
         calories_burned: Math.round(weight * (goal === 'muscle_gain' ? 2.8 : 4)),
         exercises:
@@ -475,16 +480,16 @@ Javob formati:
                 sets: 4,
                 reps: '10-12',
                 rest: 60,
-                muscle_group: "Ko'krak",
-                description: "To'g'ri texnikada bajaring",
+                muscle_group: locale === 'ru' ? 'Грудь' : "Ko'krak",
+                description: locale === 'ru' ? 'Выполняйте с правильной техникой' : "To'g'ri texnikada bajaring",
               },
               {
                 name: 'Squat',
                 sets: 4,
                 reps: '12-15',
                 rest: 60,
-                muscle_group: 'Son',
-                description: "Belni to'g'ri tuting",
+                muscle_group: locale === 'ru' ? 'Ноги' : 'Son',
+                description: locale === 'ru' ? 'Держите спину прямо' : "Belni to'g'ri tuting",
               },
             ]
             : [
@@ -493,16 +498,16 @@ Javob formati:
                 sets: 3,
                 reps: '30',
                 rest: 45,
-                muscle_group: 'Kardio',
-                description: 'Tez tempda bajaring',
+                muscle_group: locale === 'ru' ? 'Кардио' : 'Kardio',
+                description: locale === 'ru' ? 'Выполняйте в быстром темпе' : 'Tez tempda bajaring',
               },
               {
                 name: 'Planka',
                 sets: 3,
-                reps: '30-45 soniya',
+                reps: locale === 'ru' ? '30-45 секунд' : '30-45 soniya',
                 rest: 45,
-                muscle_group: 'Qorin',
-                description: "Tanani to'g'ri tuting",
+                muscle_group: locale === 'ru' ? 'Кор' : 'Qorin',
+                description: locale === 'ru' ? 'Держите тело прямо' : "Tanani to'g'ri tuting",
               },
             ],
       },
