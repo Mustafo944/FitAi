@@ -26,6 +26,7 @@ export default function OnboardingPage() {
 
   const [step, setStep] = useState(1)
   const [analyzing, setAnalyzing] = useState(false)
+  const [isChecking, setIsChecking] = useState(true)
   const [progressValue, setProgressValue] = useState(0)
   const [progressText, setProgressText] = useState('')
   const [preview, setPreview] = useState('')
@@ -41,6 +42,7 @@ export default function OnboardingPage() {
     const checkUserAndRedirect = async () => {
       const searchParams = new URLSearchParams(window.location.search)
       if (searchParams.get('reanalyze') === 'true') {
+        setIsChecking(false)
         return // Agar "Qayta tahlil" orqali kelgan bo'lsa, DB orqali tiklashni rad etamiz
       }
 
@@ -60,6 +62,8 @@ export default function OnboardingPage() {
         if (meta.dietPlan) state.setDietPlan(meta.dietPlan)
         if (meta.workoutPlan) state.setWorkoutPlan(meta.workoutPlan)
         router.replace('/dashboard')
+      } else {
+        setIsChecking(false)
       }
     }
 
@@ -331,6 +335,17 @@ export default function OnboardingPage() {
               }
             }
           `}</style>
+        </div>
+      </div>
+    )
+  }
+
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center">
+        <div className="text-4xl animate-bounce mb-4">🏋️</div>
+        <div className="text-[#c8f55a] animate-pulse font-medium text-sm tracking-widest uppercase">
+          {t('loading')}
         </div>
       </div>
     )
