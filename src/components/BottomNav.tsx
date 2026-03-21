@@ -26,11 +26,10 @@ export default function BottomNav() {
             <Link
               key={tab.href}
               href={tab.href}
-              className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl transition-all ${
-                isActive
+              className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl transition-all ${isActive
                   ? 'text-[#c8f55a]'
                   : 'text-gray-500 hover:text-gray-300'
-              }`}
+                }`}
             >
               <span className={`text-xl ${isActive ? 'scale-110' : ''} transition-transform`}>
                 {tab.icon}

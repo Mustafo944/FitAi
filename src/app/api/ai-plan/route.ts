@@ -65,17 +65,6 @@ function getFormulaBodyType(
   return 'endomorph'
 }
 
-function normalizeGoal(goal: string) {
-  const map: Record<string, string> = {
-    weight_loss: "vazn yo'qotish",
-    muscle_gain: 'mushak olish',
-    maintain: 'vazn saqlash',
-    healthy_life: "sog'lom turmush",
-  }
-
-  return map[goal] || "sog'lom turmush"
-}
-
 function getLevel(score: number) {
   if (score < 50) return 'beginner'
   if (score < 70) return 'intermediate'
@@ -100,7 +89,6 @@ export async function POST(req: NextRequest) {
     let age = 0
     let gender = ''
     let goal = ''
-    let locale = 'uz'
 
     if (contentType.includes('multipart/form-data')) {
       const formData = await req.formData()
@@ -110,7 +98,6 @@ export async function POST(req: NextRequest) {
       age = Number(formData.get('age'))
       gender = String(formData.get('gender') || '').trim()
       goal = String(formData.get('goal') || '').trim()
-      locale = String(formData.get('locale') || 'uz').trim()
     } else {
       const body = await req.json()
       height = Number(body.height)
@@ -118,7 +105,6 @@ export async function POST(req: NextRequest) {
       age = Number(body.age)
       gender = String(body.gender || '').trim()
       goal = String(body.goal || '').trim()
-      locale = String(body.locale || 'uz').trim()
     }
 
     if (!height || !weight || !age || !gender || !goal) {
@@ -192,23 +178,23 @@ Sening vazifang:
 - muscle_visibility: low | medium | high
 - posture: good | average | bad
 
-MUHIM: BARCHA MATNLAR (ai_summary, recommendations, ko'rsatmalar) FAQAT ${locale === 'ru' ? 'RUS (Russian)' : 'O\'ZBEK (Uzbek)'} tilida yozilishi shart. Boshqa tillardan foydalanma.
+MUHIM: "ai_summary" va "recommendations" maydonlari HAM O'ZBEK (uz) HAM RUS (ru) tillarida berilishi shart (bilingual object)!
+Misol:
+"ai_summary": { "uz": "Sizning tana tuzilishingiz...", "ru": "Ваше телосложение..." }
+"recommendations": { "uz": ["Kardio qiling", "Suv iching"], "ru": ["Делайте кардио", "Пейте воду"] }
 
 Foydalanuvchi:
 - Bo'yi: ${height} sm
 - Vazni: ${weight} kg
 - Yoshi: ${age}
 - Jinsi: ${gender === 'male' ? 'Erkak' : 'Ayol'}
-- Maqsadi: ${normalizeGoal(goal)}
+- Maqsadi: ${goal}
 - Formula BMI: ${bmi.toFixed(1)}
 - Formula yog' foizi: ${formulaFatPct}
 - Formula tana turi: ${formulaBodyType}
 - Kunlik kaloriya maqsadi: ${targetCalories}
 
-${isImageFile
-        ? "Rasm yuborilgan. Vizual tahlil qil va natijani individual qil."
-        : "Rasm yuborilmagan. Bu holda formula ma'lumotlariga ko'proq tayan."
-      }
+${isImageFile ? "Rasm yuborilgan. Vizual tahlil qil va natijani individual qil." : "Rasm yuborilmagan. Bu holda formula ma'lumotlariga ko'proq tayan."}
 
 body_type faqat quyidagilardan biri bo'lsin:
 - ectomorph
@@ -228,8 +214,8 @@ Javob formati:
     "body_score": 0,
     "confidence": 0,
     "image_quality": "low|medium|high",
-    "ai_summary": "",
-    "recommendations": [],
+    "ai_summary": { "uz": "", "ru": "" },
+    "recommendations": { "uz": [], "ru": [] },
     "features": {
       "belly_fat": "low|medium|high",
       "muscle_visibility": "low|medium|high",
@@ -336,56 +322,59 @@ Javob formati:
           : 4
 
     const summary =
-      typeof vision.ai_summary === 'string' && vision.ai_summary.trim()
+      vision.ai_summary?.uz && vision.ai_summary?.ru
         ? vision.ai_summary
-        : `Sizning BMI ${bmi.toFixed(1)}. Yog' foizi taxminan ${finalFatPercentage}%. Tana turi ${finalBodyType}. Siz ${level} darajadasiz va ${normalizeGoal(goal)} yo'lidasiz.`
+        : {
+            uz: `Sizning BMI ${bmi.toFixed(1)}. Yog' foizi taxminan ${finalFatPercentage}%. Tana turi ${finalBodyType}. Siz ${level} darajadasiz.`,
+            ru: `Ваш ИМТ ${bmi.toFixed(1)}. Процент жира около ${finalFatPercentage}%. Тип тела ${finalBodyType}. Вы на уровне ${level}.`
+          }
 
     const recommendations =
-      Array.isArray(vision.recommendations) && vision.recommendations.length > 0
-        ? vision.recommendations.slice(0, 3)
-        : goal === 'weight_loss'
-          ? [
-            `Kunlik kaloriya maqsadi: ${targetCalories} kkal`,
-            'Haftasiga 4-5 marta kardio qiling',
-            'Shakar va fast foodni kamaytiring',
-          ]
-          : goal === 'muscle_gain'
-            ? [
-              `Kunlik oqsilni oshiring: taxminan ${Math.round(weight * 2)}g`,
-              'Haftasiga 4 marta kuch mashqlari qiling',
-              'Uyquni 7-8 soat qiling',
-            ]
-            : [
+      vision.recommendations?.uz && vision.recommendations?.ru
+        ? vision.recommendations
+        : {
+            uz: [
               `Kunlik kaloriya maqsadi: ${targetCalories} kkal`,
-              'Suv iste’molini oshiring',
-              'Doimiy yengil mashq qiling',
+              'Sog\'lom hayot tarziga rioya qiling',
+              'Fast foodni kamaytiring'
+            ],
+            ru: [
+              `Дневная цель калорий: ${targetCalories} ккал`,
+              'Соблюдайте здоровый образ жизни',
+              'Ограничьте фастфуд'
             ]
+          }
 
-    let coachMessage = ''
+    let coachUz = ''
+    let coachRu = ''
 
     if (goal === 'weight_loss') {
       if (features.belly_fat === 'high') {
-        coachMessage = "Qorin yog'ini kamaytirishga e'tibor bering. Kardio va kaloriya defitsiti muhim."
+        coachUz = "Qorin yog'ini kamaytirishga e'tibor bering. Kardio va kaloriya defitsiti muhim."
+        coachRu = "Сосредоточьтесь на уменьшении жира на животе. Кардио и дефицит калорий важны."
       } else {
-        coachMessage = "Barqaror yog' yo'qotish uchun dietani nazorat qiling va aktivlikni oshiring."
+        coachUz = "Barqaror yog' yo'qotish uchun dietani nazorat qiling va aktivlikni oshiring."
+        coachRu = "Контролируйте диету и увеличьте активность для стабильной потери жира."
       }
-    }
-
-    if (goal === 'muscle_gain') {
+    } else if (goal === 'muscle_gain') {
       if (features.muscle_visibility === 'low') {
-        coachMessage = "Mushak ko'rinishini oshirish uchun og'irlik mashqlarini ko'paytiring."
+        coachUz = "Mushak ko'rinishini oshirish uchun og'irlik mashqlarini ko'paytiring."
+        coachRu = "Увеличьте силовые тренировки для улучшения рельефа мышц."
       } else {
-        coachMessage = "Sizda yaxshi baza bor. Endi progressiv overloadga o'ting."
+        coachUz = "Sizda yaxshi baza bor. Endi progressiv overloadga o'ting."
+        coachRu = "У вас хорошая база. Переходите к прогрессивной перегрузке."
       }
-    }
-
-    if (goal === 'maintain' || goal === 'healthy_life') {
-      coachMessage = locale === 'ru' ? "Соблюдайте баланс питания и легких тренировок, чтобы сохранить текущую форму." : "Hozirgi formani saqlash uchun ovqatlanish va yengil mashqlar balansini ushlang."
+    } else {
+      coachUz = "Hozirgi formani saqlash uchun ovqatlanish va yengil mashqlar balansini ushlang."
+      coachRu = "Соблюдайте баланс питания и легких тренировок, чтобы сохранить текущую форму."
     }
 
     if (features.posture === 'bad') {
-      coachMessage += locale === 'ru' ? " Для улучшения осанки добавьте упражнения на кор и спину." : " Posturani yaxshilash uchun core va bel mashqlarini qo'shing."
+      coachUz += " Posturani yaxshilash uchun bel mashqlarini qo'shing."
+      coachRu += " Добавьте упражнения на спину для улучшения осанки."
     }
+
+    const coach_message = { uz: coachUz, ru: coachRu }
 
     const analysis = {
       body_type: finalBodyType,
@@ -394,7 +383,10 @@ Javob formati:
       weight_loss_estimate: weightLossEstimate,
       ai_summary:
         aiConfidence < 60
-          ? "Rasm sifati yoki ko'rinish yetarli emas. Natija taxminiy baholandi."
+          ? {
+              uz: "Rasm sifati yoki ko'rinish yetarli emas. Natija taxminiy baholandi.",
+              ru: "Качество фото недостаточное. Результат оценен приблизительно."
+            }
           : summary,
       recommendations,
       body_score: bodyScore,
@@ -403,7 +395,7 @@ Javob formati:
       confidence: aiConfidence,
       image_quality: imageQuality,
       features,
-      coach_message: coachMessage,
+      coach_message,
     }
 
     const proteinPerMeal = Math.round(weight * (goal === 'muscle_gain' ? 0.6 : 0.4))
@@ -415,36 +407,33 @@ Javob formati:
         water_intake: parseFloat((weight * 0.033).toFixed(1)),
         meals: [
           {
-            name: locale === 'ru' ? 'Завтрак' : 'Nonushta',
+            name: { uz: 'Nonushta', ru: 'Завтрак' },
             time: '08:00',
             total_calories: Math.round(targetCalories * 0.25),
             foods: [
               {
-                name: locale === 'ru' ? 'Яйца' : 'Tuxum',
-                amount:
-                  goal === 'muscle_gain'
-                    ? `${Math.max(2, Math.round(weight / 20))} ${locale === 'ru' ? 'шт' : 'dona'}`
-                    : `2 ${locale === 'ru' ? 'шт' : 'dona'}`,
-                calories: goal === 'muscle_gain' ? 210 : 140,
-                protein: goal === 'muscle_gain' ? 18 : 12,
+                name: { uz: 'Tuxum', ru: 'Яйца' },
+                amount: { uz: '2 dona', ru: '2 шт' },
+                calories: 140,
+                protein: 12,
                 carbs: 1,
                 fat: 10,
               },
             ],
             recipe: {
-              ingredients: locale === 'ru' ? ['Яйца', '1 ч.л. масла', 'Соль'] : ['Tuxum', "1 choy qoshiq yog'", 'Tuz'],
-              steps: [locale === 'ru' ? 'Приготовьте яйца' : 'Tuxumni pishiring'],
+              ingredients: { uz: ['Tuxum', "1 ch q. yog'"], ru: ['Яйца', '1 ч.л. масла'] },
+              steps: { uz: ['Tuxumni pishiring'], ru: ['Приготовьте яйца'] },
               cook_time: 5,
             },
           },
           {
-            name: locale === 'ru' ? 'Обед' : 'Tushlik',
+            name: { uz: 'Tushlik', ru: 'Обед' },
             time: '13:00',
             total_calories: Math.round(targetCalories * 0.35),
             foods: [
               {
-                name: goal === 'weight_loss' ? (locale === 'ru' ? 'Куриная грудка' : 'Tovuq ko‘kragi') : (locale === 'ru' ? 'Говядина' : 'Mol go‘shti'),
-                amount: `${proteinPerMeal}g`,
+                name: { uz: 'Tovuq ko‘kragi', ru: 'Куриная грудка' },
+                amount: { uz: `${proteinPerMeal}g`, ru: `${proteinPerMeal}г` },
                 calories: Math.round(proteinPerMeal * 2),
                 protein: Math.round(proteinPerMeal * 0.25),
                 carbs: 0,
@@ -452,8 +441,8 @@ Javob formati:
               },
             ],
             recipe: {
-              ingredients: locale === 'ru' ? ['Мясо', 'Овощи', 'Соль'] : ['Go‘sht', 'Sabzavot', 'Tuz'],
-              steps: [locale === 'ru' ? 'Приготовьте и подавайте с гарниром' : 'Pishiring va garnir bilan bering'],
+              ingredients: { uz: ['Go‘sht', 'Sabzavot'], ru: ['Мясо', 'Овощи'] },
+              steps: { uz: ['Pishiring va garnir bilan bering'], ru: ['Приготовьте и подавайте с гарниром'] },
               cook_time: 25,
             },
           },
@@ -464,52 +453,27 @@ Javob formati:
     const workout = [
       {
         day: 1,
-        title:
-          goal === 'weight_loss'
-            ? (locale === 'ru' ? 'Жиросжигающая тренировка' : "Yog' yoqish mashqi")
-            : goal === 'muscle_gain'
-              ? (locale === 'ru' ? 'Силовая тренировка' : 'Kuch mashqi')
-              : (locale === 'ru' ? 'Тренировка на баланс' : 'Balans mashqi'),
-        duration: goal === 'muscle_gain' ? 60 : 45,
-        calories_burned: Math.round(weight * (goal === 'muscle_gain' ? 2.8 : 4)),
-        exercises:
-          goal === 'muscle_gain'
-            ? [
-              {
-                name: 'Push-up',
-                sets: 4,
-                reps: '10-12',
-                rest: 60,
-                muscle_group: locale === 'ru' ? 'Грудь' : "Ko'krak",
-                description: locale === 'ru' ? 'Выполняйте с правильной техникой' : "To'g'ri texnikada bajaring",
-              },
-              {
-                name: 'Squat',
-                sets: 4,
-                reps: '12-15',
-                rest: 60,
-                muscle_group: locale === 'ru' ? 'Ноги' : 'Son',
-                description: locale === 'ru' ? 'Держите спину прямо' : "Belni to'g'ri tuting",
-              },
-            ]
-            : [
-              {
-                name: 'Jumping Jack',
-                sets: 3,
-                reps: '30',
-                rest: 45,
-                muscle_group: locale === 'ru' ? 'Кардио' : 'Kardio',
-                description: locale === 'ru' ? 'Выполняйте в быстром темпе' : 'Tez tempda bajaring',
-              },
-              {
-                name: 'Planka',
-                sets: 3,
-                reps: locale === 'ru' ? '30-45 секунд' : '30-45 soniya',
-                rest: 45,
-                muscle_group: locale === 'ru' ? 'Кор' : 'Qorin',
-                description: locale === 'ru' ? 'Держите тело прямо' : "Tanani to'g'ri tuting",
-              },
-            ],
+        title: { uz: "Yog' yoqish mashqi", ru: 'Жиросжигающая тренировка' },
+        duration: 45,
+        calories_burned: Math.round(weight * 4),
+        exercises: [
+          {
+            name: { uz: 'Sakrash (Jumping Jack)', ru: 'Прыжки (Jumping Jack)' },
+            sets: 3,
+            reps: '30',
+            rest: 45,
+            muscle_group: { uz: 'Kardio', ru: 'Кардио' },
+            description: { uz: 'Tez tempda bajaring', ru: 'Выполняйте в быстром темпе' },
+          },
+          {
+            name: { uz: 'Planka', ru: 'Планка' },
+            sets: 3,
+            reps: { uz: '30-45 soniya', ru: '30-45 секунд' },
+            rest: 45,
+            muscle_group: { uz: 'Qorin', ru: 'Кор' },
+            description: { uz: "Tanani to'g'ri tuting", ru: 'Держите тело прямо' },
+          },
+        ],
       },
     ]
 

@@ -4,7 +4,7 @@
 import { useState } from 'react'
 import { useUserStore } from '@/store/userStore'
 import { useRouter } from 'next/navigation'
-import { useTranslation } from '@/lib/i18n'
+import { useTranslation, getLoc } from '@/lib/i18n'
 import type { Meal, FoodItem } from '@/types'
 import Link from 'next/link'
 import BottomNav from '@/components/BottomNav'
@@ -23,7 +23,7 @@ const mealIcons: Record<string, string> = {
 export default function DietPage() {
   const router = useRouter()
   const { dietPlan } = useUserStore()
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null)
   const [checkedFoods, setCheckedFoods] = useState<Set<string>>(new Set())
 
@@ -116,7 +116,7 @@ export default function DietPage() {
                 <div className="flex items-center gap-3">
                   <span className="text-xl">{mealIcons[meal.name] || '🍴'}</span>
                   <div className="text-left">
-                    <div className="font-medium text-sm">{meal.name}</div>
+                    <div className="font-medium text-sm">{getLoc(meal.name, locale)}</div>
                     <div className="text-xs text-gray-500">{meal.time} · {meal.foods.length} ta mahsulot</div>
                   </div>
                 </div>
@@ -152,9 +152,9 @@ export default function DietPage() {
                             </div>
                             <div>
                               <div className={`text-sm font-medium transition-colors ${checked ? 'text-gray-500 line-through' : 'text-white'}`}>
-                                {food.name}
+                                {getLoc(food.name, locale)}
                               </div>
-                              <div className="text-xs text-gray-600">{food.amount}</div>
+                              <div className="text-xs text-gray-600">{getLoc(food.amount, locale)}</div>
                             </div>
                           </div>
                           <div className="text-right">
@@ -181,7 +181,7 @@ export default function DietPage() {
                         <div className="flex flex-wrap gap-1.5">
                           {meal.recipe.ingredients.map((ing: string, i: number) => (
                             <span key={i} className="text-xs bg-white/6 px-2.5 py-1 rounded-lg text-gray-300">
-                              {ing}
+                              {getLoc(ing, locale)}
                             </span>
                           ))}
                         </div>
@@ -193,7 +193,7 @@ export default function DietPage() {
                           {meal.recipe.steps.map((step: string, i: number) => (
                             <li key={i} className="flex gap-2 text-xs text-gray-300">
                               <span className="text-[#c8f55a] font-bold flex-shrink-0">{i + 1}.</span>
-                              <span>{step}</span>
+                              <span>{getLoc(step, locale)}</span>
                             </li>
                           ))}
                         </ol>

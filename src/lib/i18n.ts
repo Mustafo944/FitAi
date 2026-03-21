@@ -563,3 +563,9 @@ export function getTranslation(locale: Locale) {
   }
   return { t }
 }
+
+export function getLoc(val: any, locale: string): string {
+  if (!val) return ''
+  if (typeof val === 'string') return val
+  return val[locale] || val['uz'] || ''
+}

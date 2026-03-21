@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useUserStore } from '@/store/userStore'
 import { useRouter } from 'next/navigation'
-import { useTranslation } from '@/lib/i18n'
+import { useTranslation, getLoc } from '@/lib/i18n'
 import type { Exercise } from '@/types'
 import Link from 'next/link'
 import BottomNav from '@/components/BottomNav'
@@ -12,7 +12,7 @@ import BottomNav from '@/components/BottomNav'
 export default function WorkoutPage() {
   const router = useRouter()
   const { workoutPlan } = useUserStore()
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const [completedSets, setCompletedSets] = useState<Record<string, number>>({})
   const [restTimer, setRestTimer] = useState<number | null>(null)
   const [activeExercise, setActiveExercise] = useState<string | null>(null)
@@ -76,7 +76,7 @@ export default function WorkoutPage() {
       <div className="border-b border-white/8 px-4 py-4 flex items-center gap-3">
         <Link href="/dashboard" className="text-gray-400 hover:text-white transition-colors text-lg">←</Link>
         <div>
-          <h1 className="font-bold text-lg" style={{ fontFamily: 'var(--font-clash)' }}>{today.title}</h1>
+          <h1 className="font-bold text-lg" style={{ fontFamily: 'var(--font-clash)' }}>{getLoc(today.title, locale)}</h1>
           <p className="text-xs text-gray-500">{today.duration} {t('workout_min')} · 🔥 {today.calories_burned} {t('diet_kcal')}</p>
         </div>
       </div>
@@ -154,10 +154,10 @@ export default function WorkoutPage() {
                     </div>
                     <div>
                       <div className={`text-sm font-medium ${isDone ? 'text-gray-400 line-through' : 'text-white'}`}>
-                        {ex.name}
+                        {getLoc(ex.name, locale)}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {ex.muscle_group} · {ex.reps}
+                        {getLoc(ex.muscle_group, locale)} · {ex.reps}
                       </div>
                     </div>
                   </div>
@@ -180,7 +180,7 @@ export default function WorkoutPage() {
                 {isExp && (
                   <div className="border-t border-white/8 px-4 pb-4">
                     {/* Tavsif */}
-                    <p className="text-sm text-gray-400 mt-3 mb-4 leading-relaxed">{ex.description}</p>
+                    <p className="text-sm text-gray-400 mt-3 mb-4 leading-relaxed">{getLoc(ex.description, locale)}</p>
 
                     {/* Set/Rep info */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">

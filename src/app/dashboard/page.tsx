@@ -2,7 +2,7 @@
 // src/app/dashboard/page.tsx
 
 import { useUserStore } from '@/store/userStore'
-import { useTranslation } from '@/lib/i18n'
+import { useTranslation, getLoc } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
@@ -12,7 +12,7 @@ import BottomNav from '@/components/BottomNav'
 export default function DashboardPage() {
   const router = useRouter()
   const supabase = createClient()
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const {
     analysis,
     dietPlan,
@@ -252,7 +252,7 @@ export default function DashboardPage() {
               </span>
             </div>
 
-            <p className="text-sm text-gray-200 leading-relaxed mb-4">{safeAnalysis.coach_message}</p>
+            <p className="text-sm text-gray-200 leading-relaxed mb-4">{getLoc(safeAnalysis.coach_message, locale)}</p>
 
             <div className="grid grid-cols-3 gap-2 md:gap-3">
               <div className="bg-black/20 border border-white/5 rounded-xl p-3 text-center">
@@ -272,14 +272,14 @@ export default function DashboardPage() {
 
           <div className="bg-[#111] border border-white/8 rounded-2xl p-5">
             <div className="text-xs text-[#c8f55a] font-semibold mb-2">{t('dash_ai_summary')}</div>
-            <p className="text-gray-300 text-sm leading-relaxed">{safeAnalysis.ai_summary}</p>
+            <p className="text-gray-300 text-sm leading-relaxed">{getLoc(safeAnalysis.ai_summary, locale)}</p>
 
             {safeAnalysis.recommendations.length > 0 && (
               <ul className="mt-3 space-y-1">
-                {safeAnalysis.recommendations.map((r: string, i: number) => (
+                {safeAnalysis.recommendations.map((r: any, i: number) => (
                   <li key={i} className="text-sm text-gray-500 flex gap-2">
                     <span className="text-[#c8f55a] mt-0.5">→</span>
-                    <span>{r}</span>
+                    <span>{getLoc(r, locale)}</span>
                   </li>
                 ))}
               </ul>
@@ -310,10 +310,10 @@ export default function DashboardPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {todayDiet.meals?.slice(0, 3).map(
-                    (meal: { time?: string; name?: string; total_calories?: number }, i: number) => (
+                    (meal: { time?: string; name?: any; total_calories?: number }, i: number) => (
                       <div key={i} className="bg-white/5 rounded-xl p-3 text-center">
                         <div className="text-xs text-gray-400 mb-1">{meal.time || '--:--'}</div>
-                        <div className="text-[13px] font-medium truncate">{meal.name || ''}</div>
+                        <div className="text-[13px] font-medium truncate">{getLoc(meal.name, locale)}</div>
                         <div className="text-xs text-[#c8f55a] mt-1">{meal.total_calories ?? 0} {t('diet_kcal')}</div>
                       </div>
                     )
@@ -329,7 +329,7 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span className="text-xl">💪</span>
-                    <span className="font-semibold">{todayWorkout.title || t('dash_workout')}</span>
+                    <span className="font-semibold">{getLoc(todayWorkout.title, locale) || t('dash_workout')}</span>
                   </div>
                   <span className="text-xs text-[#c8f55a] font-medium">
                     {todayWorkout.duration ?? 0} {t('workout_min')} →
