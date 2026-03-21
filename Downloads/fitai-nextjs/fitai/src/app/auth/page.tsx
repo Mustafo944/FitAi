@@ -56,13 +56,14 @@ export default function AuthPage() {
         toast.success('Ro\'yxatdan o\'tdingiz! Tasdiqlash xati yuborilgan bo\'lishi mumkin.')
         setMode('login')
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Auth error:', err)
-      const msg = err.message?.includes('Invalid login')
+      const errMsg = err instanceof Error ? err.message : ''
+      const msg = errMsg.includes('Invalid login')
         ? 'Email yoki parol noto\'g\'ri'
-        : err.message?.includes('already registered')
+        : errMsg.includes('already registered')
         ? 'Bu email allaqachon ro\'yxatdan o\'tgan'
-        : err.message || 'Xato yuz berdi'
+        : errMsg || 'Xato yuz berdi'
       toast.error(msg)
     } finally {
       setLoading(false)
@@ -76,9 +77,9 @@ export default function AuthPage() {
         options: { redirectTo: `${location.origin}/auth/callback` },
       })
       if (error) throw error
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Google Auth error:', err)
-      if (err.message?.includes('provider is not enabled')) {
+      if (err instanceof Error && err.message?.includes('provider is not enabled')) {
         toast.error("Google orqali kirish hozircha o'chiq. Supabase Dashboard'dan Google Provider'ni yoqing.", { duration: 5000 })
       } else {
         toast.error("Google orqali kirishda xato yuz berdi")

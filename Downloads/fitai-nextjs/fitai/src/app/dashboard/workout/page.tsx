@@ -115,7 +115,7 @@ export default function WorkoutPage() {
               onClick={() => { clearInterval(timerRef.current!); setRestTimer(null); setActiveExercise(null) }}
               className="mt-2 text-xs text-gray-500 hover:text-white transition-colors"
             >
-              O'tkazib yuborish →
+              O&apos;tkazib yuborish →
             </button>
           </div>
         )}

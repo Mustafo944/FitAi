@@ -3,7 +3,8 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 
-async function generateWithRetry(model: any, content: any, retries = 3) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function generateWithRetry(model: any, content: unknown[], retries = 3) {
   for (let i = 0; i < retries; i++) {
     try {
       const result = await Promise.race([
@@ -13,10 +14,11 @@ async function generateWithRetry(model: any, content: any, retries = 3) {
         ),
       ])
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const response = await (result as any).response
       return response.text()
-    } catch (err: any) {
-      const msg = err?.message || ''
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : ''
 
       if (
         (msg.includes('429') ||
@@ -232,6 +234,7 @@ Javob formati:
 }
 `
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const content: any[] = []
 
     if (isImageFile && image) {
@@ -248,6 +251,7 @@ Javob formati:
     const text = await generateWithRetry(model, content)
     const cleanedText = text.replace(/```json|```/g, '').trim()
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let parsed: any
 
     try {
@@ -512,9 +516,9 @@ Javob formati:
         workout,
       },
     })
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('AI PLAN ERROR:', err)
-    const msg = err?.message || "Noma'lum xato"
+    const msg = err instanceof Error ? err.message : "Noma'lum xato"
 
     if (msg.includes('429') || msg.includes('rate') || msg.includes('quota')) {
       return NextResponse.json(
