@@ -72,7 +72,7 @@ export default function SettingsPage() {
     setAnalysis(null)
     setDietPlan([])
     setWorkoutPlan([])
-    router.push('/onboarding')
+    router.push('/onboarding?reanalyze=true')
   }
 
   return (

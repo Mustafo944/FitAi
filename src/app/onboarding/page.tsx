@@ -39,6 +39,11 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     const checkUserAndRedirect = async () => {
+      const searchParams = new URLSearchParams(window.location.search)
+      if (searchParams.get('reanalyze') === 'true') {
+        return // Agar "Qayta tahlil" orqali kelgan bo'lsa, DB orqali tiklashni rad etamiz
+      }
+
       const state = useUserStore.getState()
       
       // Agar tayyor reja qabul qilingan bo'lsa
