@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
   try {
     if (!process.env.GEMINI_API_KEY) {
       return NextResponse.json(
-        { success: false, error: 'GEMINI_API_KEY topilmadi' },
+        { success: false, error: 'GEMINI_API_KEY Vercel environment variables da topilmadi' },
         { status: 500 }
       )
     }
@@ -150,10 +150,10 @@ export async function POST(req: NextRequest) {
     const formulaBodyType = getFormulaBodyType(formulaFatPct, gender)
 
     const model = genAI.getGenerativeModel({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.5-flash-preview-04-17',
       generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 2048,
+        temperature: 0.4,
+        maxOutputTokens: 1024,
       },
     })
 
@@ -240,19 +240,41 @@ RETURN JSON:
     content.push({ text: prompt })
 
     const text = await generateWithRetry(model, content)
-    const cleanedText = text.replace(/```json|```/g, '').trim()
+    console.log('[AI] raw response length:', text?.length, 'preview:', text?.slice(0, 200))
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let parsed: any
 
     try {
-      parsed = JSON.parse(cleanedText)
+      // 1-urinish: to'g'ridan parse
+      const cleaned = text.replace(/```json|```/gi, '').trim()
+      parsed = JSON.parse(cleaned)
     } catch {
-      const match = cleanedText.match(/\{[\s\S]*\}/)
-      if (!match) {
-        throw new Error("AI noto'g'ri JSON qaytardi")
+      try {
+        // 2-urinish: ichki JSON topish
+        const match = text.match(/\{[\s\S]*\}/)
+        if (!match) throw new Error('JSON topilmadi')
+        parsed = JSON.parse(match[0])
+      } catch {
+        // 3-urinish: formula natijalaridan fallback
+        console.error('[AI] JSON parse failed, using formula fallback. Raw:', text?.slice(0, 300))
+        parsed = {
+          vision_analysis: {
+            body_type: formulaBodyType,
+            fat_percentage: formulaFatPct,
+            body_score: 60,
+            confidence: 40,
+            image_quality: isImageFile ? 'medium' : 'low',
+            ai_summary: locale === 'ru'
+              ? `Анализ по формулам. ИМТ ${bmi.toFixed(1)}, жир ${formulaFatPct}%.`
+              : `Formula asosida tahlil. BMI ${bmi.toFixed(1)}, yog' ${formulaFatPct}%.`,
+            recommendations: locale === 'ru'
+              ? [`Калории: ${targetCalories} ккал`, 'Пейте больше воды', 'Регулярные тренировки']
+              : [`Kaloriya: ${targetCalories}`, 'Ko\'proq suv iching', 'Muntazam mashq qiling'],
+            features: { belly_fat: 'medium', muscle_visibility: 'medium', posture: 'average' }
+          }
+        }
       }
-      parsed = JSON.parse(match[0])
     }
 
     const vision = parsed?.vision_analysis || {}
@@ -485,11 +507,11 @@ RETURN JSON:
     console.error('AI PLAN ERROR:', err)
     const msg = err instanceof Error ? err.message : "Noma'lum xato"
 
-    if (msg.includes('429') || msg.includes('rate') || msg.includes('quota')) {
+    if (msg.includes('429') || msg.includes('rate') || msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED')) {
       return NextResponse.json(
         {
           success: false,
-          error: "API limiti vaqtincha to'ldi. Birozdan keyin qayta urinib ko'ring.",
+          error: `Gemini API limiti to'ldi (model: gemini-1.5-flash-8b). Xato: ${msg.slice(0, 100)}`,
         },
         { status: 429 }
       )
@@ -498,7 +520,7 @@ RETURN JSON:
     return NextResponse.json(
       {
         success: false,
-        error: 'AI plan yaratishda xato: ' + msg,
+        error: `AI xato [${msg.slice(0, 150)}]`,
       },
       { status: 500 }
     )
