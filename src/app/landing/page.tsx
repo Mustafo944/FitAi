@@ -10,10 +10,11 @@ export default function LandingPage() {
     const [mounted, setMounted] = useState(false)
 
     useEffect(() => {
-        setMounted(true)
+        const timer = setTimeout(() => setMounted(true), 10)
         if (locale === 'uz' || locale === 'ru') {
             document.cookie = `lang=${locale}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`
         }
+        return () => clearTimeout(timer)
     }, [locale])
 
     const features = [

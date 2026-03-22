@@ -266,6 +266,7 @@ export default function OnboardingPage() {
 
               {preview ? (
                 <div className="relative mb-6 rounded-3xl overflow-hidden border border-[#c8f55a]/20 bg-black">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={preview}
                     alt="Body scan preview"
@@ -488,6 +489,7 @@ export default function OnboardingPage() {
                   ) : (
                     <div className="relative z-10 space-y-4">
                       <div className="relative rounded-[24px] overflow-hidden border border-[#c8f55a]/20 bg-black">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={preview}
                           alt="Preview"

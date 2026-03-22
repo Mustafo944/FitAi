@@ -3,6 +3,7 @@
 import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
 import { Toaster } from 'react-hot-toast'
+import ClientThemeSync from '@/components/ClientThemeSync'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -22,8 +23,21 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="uz" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{
+          __html: `
+          try {
+            var s = localStorage.getItem('fitai-store');
+            if (s) {
+              var d = JSON.parse(s);
+              if (d.state && d.state.theme === 'light') {
+                document.documentElement.classList.add('theme-light');
+              }
+            }
+          } catch(e) {}
+        ` }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600&display=swap"
@@ -33,6 +47,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <main className="page-enter">
           {children}
         </main>
+        <ClientThemeSync />
 
         <Toaster
           position="top-center"

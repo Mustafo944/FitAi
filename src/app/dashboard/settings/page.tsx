@@ -85,16 +85,7 @@ export default function SettingsPage() {
     setEditingProfile(false)
     toast.success(t('settings_saved'))
   }
-  const handleThemeChange = (th: 'dark' | 'light') => {
-    setTheme(th)
 
-    const html = document.documentElement
-    if (th === 'light') {
-      html.classList.add('theme-light')
-    } else {
-      html.classList.remove('theme-light')
-    }
-  }
   const handleReanalyze = () => {
     setAnalysis(null)
     setDietPlan([])
