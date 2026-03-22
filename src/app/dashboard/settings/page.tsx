@@ -50,11 +50,15 @@ export default function SettingsPage() {
   const [localAge, setLocalAge] = useState(onboardingData.age)
   const [localGender, setLocalGender] = useState(onboardingData.gender)
   const [localGoal, setLocalGoal] = useState(onboardingData.goal)
-
   useEffect(() => {
-    // Til sozlamasi faqat settings sahifasida ko'rinadi
-    // Bu yerda hech qanday redirect kerak emas
-  }, [])
+    const html = document.documentElement
+
+    if (theme === 'light') {
+      html.classList.add('theme-light')
+    } else {
+      html.classList.remove('theme-light')
+    }
+  }, [theme])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -81,7 +85,16 @@ export default function SettingsPage() {
     setEditingProfile(false)
     toast.success(t('settings_saved'))
   }
+  const handleThemeChange = (th: 'dark' | 'light') => {
+    setTheme(th)
 
+    const html = document.documentElement
+    if (th === 'light') {
+      html.classList.add('theme-light')
+    } else {
+      html.classList.remove('theme-light')
+    }
+  }
   const handleReanalyze = () => {
     setAnalysis(null)
     setDietPlan([])
@@ -158,7 +171,16 @@ export default function SettingsPage() {
             {(['dark', 'light'] as const).map((th) => (
               <button
                 key={th}
-                onClick={() => setTheme(th)}
+                onClick={() => {
+                  setTheme(th)
+
+                  const html = document.documentElement
+                  if (th === 'light') {
+                    html.classList.add('theme-light')
+                  } else {
+                    html.classList.remove('theme-light')
+                  }
+                }}
                 type="button"
                 className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all ${theme === th
                   ? 'bg-[#c8f55a] text-black shadow-[0_0_20px_rgba(200,245,90,0.15)]'
