@@ -12,6 +12,7 @@ export default function LanguagePage() {
   const handleSelect = (lang: Locale) => {
     // localStorage ga saqlash
     localStorage.setItem('lang', lang)
+    localStorage.setItem('lang_selected', 'true')
     // Cookie ga ham saqlash (middleware uchun)
     document.cookie = `lang=${lang}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`
 

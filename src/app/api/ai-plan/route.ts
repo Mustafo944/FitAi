@@ -7,30 +7,25 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 async function generateWithRetry(model: any, content: unknown[], retries = 3) {
   for (let i = 0; i < retries; i++) {
     try {
-      const result = await Promise.race([
-        model.generateContent(content),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('AI javobi kechikdi')), 30000)
-        ),
-      ])
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const response = await (result as any).response
-      return response.text()
+      const result = await model.generateContent(content)
+      const text = result.response.text()
+      if (!text) throw new Error('Bo\'sh javob qaytdi')
+      return text
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : ''
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error(`[AI] attempt ${i + 1} failed:`, msg)
 
-      if (
-        (msg.includes('429') ||
-          msg.includes('rate') ||
-          msg.includes('quota') ||
-          msg.includes('kechikdi')) &&
-        i < retries - 1
-      ) {
-        await new Promise((res) => setTimeout(res, 2500 * (i + 1)))
-      } else {
-        throw err
+      const isRateLimit = msg.includes('429') || msg.includes('rate') ||
+        msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED')
+
+      if (isRateLimit && i < retries - 1) {
+        const wait = 8000 * (i + 1)
+        console.log(`[AI] rate limit, waiting ${wait}ms...`)
+        await new Promise((res) => setTimeout(res, wait))
+        continue
       }
+
+      throw err
     }
   }
 
@@ -157,7 +152,8 @@ export async function POST(req: NextRequest) {
     const model = genAI.getGenerativeModel({
       model: 'gemini-2.5-flash',
       generationConfig: {
-        responseMimeType: 'application/json',
+        temperature: 0.7,
+        maxOutputTokens: 2048,
       },
     })
 
@@ -493,7 +489,7 @@ RETURN JSON:
       return NextResponse.json(
         {
           success: false,
-          error: 'API limiti vaqtincha to‘ldi. Birozdan keyin qayta urinib ko‘ring.',
+          error: "API limiti vaqtincha to'ldi. Birozdan keyin qayta urinib ko'ring.",
         },
         { status: 429 }
       )
