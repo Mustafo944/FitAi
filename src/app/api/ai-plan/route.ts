@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
     let age = 0
     let gender = ''
     let goal = ''
-
+    let locale = 'uz'
     if (contentType.includes('multipart/form-data')) {
       const formData = await req.formData()
       image = formData.get('image') as File | null
@@ -98,6 +98,7 @@ export async function POST(req: NextRequest) {
       age = Number(formData.get('age'))
       gender = String(formData.get('gender') || '').trim()
       goal = String(formData.get('goal') || '').trim()
+      locale = String(formData.get('locale') || 'uz').trim()
     } else {
       const body = await req.json()
       height = Number(body.height)
@@ -105,6 +106,7 @@ export async function POST(req: NextRequest) {
       age = Number(body.age)
       gender = String(body.gender || '').trim()
       goal = String(body.goal || '').trim()
+      locale = String(body.locale || 'uz').trim()
     }
 
     if (!height || !weight || !age || !gender || !goal) {
@@ -160,62 +162,64 @@ export async function POST(req: NextRequest) {
     })
 
     const prompt = `
-Sen professional body analyst, fitness coach va nutrition plannerisan.
+You are a HIGH-LEVEL professional fitness coach, body analyst and nutrition expert.
 
-Sening vazifang:
-1. Agar rasm yuborilgan bo'lsa, avvalo rasmni chuqur vizual tahlil qil.
-2. Tana proporsiyasi, qorin-bel zonasi, yelka kengligi, mushak ko'rinishi va umumiy body composition bo'yicha baho ber.
-3. Quyidagi formula natijalari faqat yordamchi ma'lumot:
-   - formula_bmi: ${bmi.toFixed(1)}
-   - formula_fat_percentage: ${formulaFatPct}
-   - formula_body_type: ${formulaBodyType}
-4. Agar rasm aniq va sifatli bo'lsa, body_type va fat_percentage aniqlashda rasmni ustun qo'y.
-5. Agar rasm sifati past bo'lsa, confidence ni pasaytir va formula ma'lumotlariga yaqinlash.
-6. Hech qachon bir xil shablon javob bermagin. Har bir foydalanuvchi uchun individual xulosa qil.
-7. Faqat JSON qaytar. Hech qanday markdown yoki ortiqcha izoh yozma.
-8. Quyidagi vizual featurelarni ham aniqlagin:
+STRICT RULES:
+- You MUST respond ONLY in ${locale === 'ru' ? 'Russian' : 'Uzbek'} language
+- DO NOT use English at all
+- DO NOT explain anything outside JSON
+- DO NOT return markdown
+- Return ONLY valid JSON
+
+YOUR TASK:
+Analyze user's body deeply like a real coach.
+
+PRIORITY:
+1. If image exists → visual analysis is PRIMARY
+2. If image weak → combine with formulas
+3. Give realistic and personalized feedback (NOT generic)
+
+USER DATA:
+- Height: ${height}
+- Weight: ${weight}
+- Age: ${age}
+- Gender: ${gender}
+- Goal: ${goal}
+
+FORMULAS:
+- BMI: ${bmi.toFixed(1)}
+- Fat: ${formulaFatPct}
+- Body type: ${formulaBodyType}
+
+ANALYZE:
+- body composition
+- fat distribution
+- muscle visibility
+- posture
+- realistic fitness level
+
+YOU MUST:
+- think like real coach
+- identify weaknesses
+- give actionable advice
+- be specific (NO generic phrases)
+
+FEATURES:
 - belly_fat: low | medium | high
 - muscle_visibility: low | medium | high
 - posture: good | average | bad
 
-MUHIM: "ai_summary" va "recommendations" maydonlari HAM O'ZBEK (uz) HAM RUS (ru) tillarida berilishi shart (bilingual object)!
-Misol:
-"ai_summary": { "uz": "Sizning tana tuzilishingiz...", "ru": "Ваше телосложение..." }
-"recommendations": { "uz": ["Kardio qiling", "Suv iching"], "ru": ["Делайте кардио", "Пейте воду"] }
+RETURN JSON:
 
-Foydalanuvchi:
-- Bo'yi: ${height} sm
-- Vazni: ${weight} kg
-- Yoshi: ${age}
-- Jinsi: ${gender === 'male' ? 'Erkak' : 'Ayol'}
-- Maqsadi: ${goal}
-- Formula BMI: ${bmi.toFixed(1)}
-- Formula yog' foizi: ${formulaFatPct}
-- Formula tana turi: ${formulaBodyType}
-- Kunlik kaloriya maqsadi: ${targetCalories}
-
-${isImageFile ? "Rasm yuborilgan. Vizual tahlil qil va natijani individual qil." : "Rasm yuborilmagan. Bu holda formula ma'lumotlariga ko'proq tayan."}
-
-body_type faqat quyidagilardan biri bo'lsin:
-- ectomorph
-- mesomorph
-- endomorph
-
-image_quality faqat quyidagilardan biri bo'lsin:
-- low
-- medium
-- high
-
-Javob formati:
 {
   "vision_analysis": {
     "body_type": "ectomorph|mesomorph|endomorph",
-    "fat_percentage": 0,
-    "body_score": 0,
-    "confidence": 0,
+    "fat_percentage": number,
+    "body_score": number (0-100),
+    "confidence": number (0-100),
     "image_quality": "low|medium|high",
-    "ai_summary": { "uz": "", "ru": "" },
-    "recommendations": { "uz": [], "ru": [] },
+    "ai_summary": "TEXT",
+    "recommendations": ["TEXT", "TEXT"],
     "features": {
       "belly_fat": "low|medium|high",
       "muscle_visibility": "low|medium|high",
@@ -322,29 +326,26 @@ Javob formati:
           : 4
 
     const summary =
-      vision.ai_summary?.uz && vision.ai_summary?.ru
+      typeof vision.ai_summary === 'string'
         ? vision.ai_summary
-        : {
-            uz: `Sizning BMI ${bmi.toFixed(1)}. Yog' foizi taxminan ${finalFatPercentage}%. Tana turi ${finalBodyType}. Siz ${level} darajadasiz.`,
-            ru: `Ваш ИМТ ${bmi.toFixed(1)}. Процент жира около ${finalFatPercentage}%. Тип тела ${finalBodyType}. Вы на уровне ${level}.`
-          }
+        : locale === 'ru'
+          ? `Ваш ИМТ ${bmi.toFixed(1)}. Процент жира около ${finalFatPercentage}%.`
+          : `Sizning BMI ${bmi.toFixed(1)}. Yog' foizi taxminan ${finalFatPercentage}%.`
 
     const recommendations =
-      vision.recommendations?.uz && vision.recommendations?.ru
+      Array.isArray(vision.recommendations)
         ? vision.recommendations
-        : {
-            uz: [
-              `Kunlik kaloriya maqsadi: ${targetCalories} kkal`,
-              'Sog\'lom hayot tarziga rioya qiling',
-              'Fast foodni kamaytiring'
-            ],
-            ru: [
-              `Дневная цель калорий: ${targetCalories} ккал`,
-              'Соблюдайте здоровый образ жизни',
-              'Ограничьте фастфуд'
-            ]
-          }
-
+        : locale === 'ru'
+          ? [
+            `Цель калорий: ${targetCalories} ккал`,
+            'Соблюдайте режим питания',
+            'Добавьте физическую активность',
+          ]
+          : [
+            `Kunlik kaloriya: ${targetCalories}`,
+            "Ovqatlanishni nazorat qiling",
+            "Faollikni oshiring",
+          ]
     let coachUz = ''
     let coachRu = ''
 
@@ -374,7 +375,7 @@ Javob formati:
       coachRu += " Добавьте упражнения на спину для улучшения осанки."
     }
 
-    const coach_message = { uz: coachUz, ru: coachRu }
+    const coach_message = locale === 'ru' ? coachRu : coachUz
 
     const analysis = {
       body_type: finalBodyType,
@@ -383,10 +384,9 @@ Javob formati:
       weight_loss_estimate: weightLossEstimate,
       ai_summary:
         aiConfidence < 60
-          ? {
-              uz: "Rasm sifati yoki ko'rinish yetarli emas. Natija taxminiy baholandi.",
-              ru: "Качество фото недостаточное. Результат оценен приблизительно."
-            }
+          ? locale === 'ru'
+            ? "Качество фото недостаточное. Результат оценен приблизительно."
+            : "Rasm sifati yetarli emas. Natija taxminiy baholandi."
           : summary,
       recommendations,
       body_score: bodyScore,

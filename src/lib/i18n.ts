@@ -34,7 +34,12 @@ const translations = {
     auth_error_generic: 'Xato yuz berdi',
     auth_error_google_disabled: "Google orqali kirish hozircha o'chiq. Supabase Dashboard'dan Google Provider'ni yoqing.",
     auth_error_google: 'Google orqali kirishda xato yuz berdi',
-
+    auth_error_env: "Supabase sozlamalari topilmadi",
+    auth_error_password: "Parol kamida 6 ta belgidan iborat bo'lishi kerak",
+    settings_name_placeholder: "Ismingizni kiriting",
+    settings_surname_placeholder: "Familiyangizni kiriting",
+    auth_email_placeholder: "Email kiriting",
+    auth_password_placeholder: "Parol kiriting",
     // Onboarding
     onboarding_hello: 'Salom! Boshlaylik 👋',
     onboarding_subtitle: "Asosiy ma'lumotlaringizni kiriting",
@@ -163,7 +168,10 @@ const translations = {
     diet_water: 'Suv',
     diet_liters: 'litr',
     diet_kcal: 'kkal',
-
+    diet_not_found: 'Dieta reja topilmadi',
+    diet_left: 'Qoldi',
+    diet_products: 'ta mahsulot',
+    diet_recipe_title: 'Retsept',
     // Workout
     workout_title: 'Mashq rejasi',
     workout_min: 'daqiqa',
@@ -185,7 +193,32 @@ const translations = {
     progress_add: "Haqiqiy vaznni qo'shish",
     dash_reanalyze: 'Qayta tahlil qilish',
     progress_kg: 'kg',
-
+    // 🔥 NEW PROGRESS KEYS
+    progress_status: 'Status',
+    progress_ahead: 'Zo‘r! Siz rejalashtirilgan natijadan oldindasiz 🔥 Shu tempni saqlang.',
+    progress_behind: 'Siz reja bo‘yicha ortda qolyapsiz ⚠️ Ovqatlanish va mashqlarni kuchaytirish kerak.',
+    progress_ontrack: 'Siz to‘g‘ri ketayapsiz ✅ Shu ritmni davom ettiring.',
+    progress_ahead_short: 'Oldinda',
+    progress_behind_short: 'Ortda',
+    progress_ontrack_short: 'Rejada',
+    progress_diff: 'Farq',
+    progress_left: 'Qoldi',
+    progress_current_week: 'Joriy hafta',
+    progress_add_weight: 'Haqiqiy vazn qo‘shish',
+    progress_input_placeholder: 'Masalan: 72',
+    progress_add_btn: 'Qo‘shish',
+    progress_weekly_title: 'Haftalik progress',
+    progress_empty: 'Hozircha progress ma’lumotlari yo‘q',
+    progress_month_estimate: 'Oyda kg taxmin',
+    progress_3month_goal: '3 oyda maqsad',
+    progress_real_vs_plan: 'Real vs Plan farq',
+    progress_weeks_left: 'Hafta qoldi',
+    progress_12week_forecast: '12 haftalik taxmin',
+    progress_target_line: 'Qizil chiziq — 3 oylik maqsad',
+    progress_real_tracking_title: 'Haqiqiy progress kuzatuv',
+    progress_real_tracking_desc: 'Haftalik rasm yuklash, AI taqqoslash, aniq o‘zgarish',
+    progress_start: "Boshlang'ich",
+    progress_week_short: 'hafta',
     // Settings
     settings_title: 'Sozlamalar',
     settings_name: 'Ism',
@@ -198,7 +231,6 @@ const translations = {
     settings_edit_profile: "Ma'lumotlarni o'zgartirish",
     settings_reanalyze: 'AI qayta tahlil',
     settings_saved: 'Saqlandi ✓',
-
     // Bottom Nav
     nav_home: 'Bosh sahifa',
     nav_diet: 'Dieta',
@@ -272,7 +304,9 @@ const translations = {
     landing_price_year_f2: 'Shaxsiy AI treneri',
     landing_price_year_f3: '3 ta oila profili',
     landing_price_year_f4: 'PDF hisobot',
-    landing_footer: '© 2025 FitAI · O\'zbekiston · Shaxsiy hayot daxlsizligi'
+    landing_footer: '© 2025 FitAI · O\'zbekiston · Shaxsiy hayot daxlsizligi',
+    workout_not_found: 'Mashq reja topilmadi',
+    workout_set: 'Set',
   },
 
   ru: {
@@ -305,7 +339,12 @@ const translations = {
     auth_error_generic: 'Произошла ошибка',
     auth_error_google_disabled: 'Вход через Google временно отключён. Включите Google Provider в Supabase Dashboard.',
     auth_error_google: 'Ошибка входа через Google',
-
+    auth_error_env: "Настройки Supabase не найдены",
+    auth_error_password: "Пароль должен содержать минимум 6 символов",
+    settings_name_placeholder: "Введите имя",
+    settings_surname_placeholder: "Введите фамилию",
+    auth_email_placeholder: "Введите email",
+    auth_password_placeholder: "Введите пароль",
     // Onboarding
     onboarding_hello: 'Привет! Начнём 👋',
     onboarding_subtitle: 'Введите ваши основные данные',
@@ -434,7 +473,10 @@ const translations = {
     diet_water: 'Вода',
     diet_liters: 'литров',
     diet_kcal: 'ккал',
-
+    diet_not_found: 'План питания не найден',
+    diet_left: 'Осталось',
+    diet_products: 'продуктов',
+    diet_recipe_title: 'Рецепт',
     // Workout
     workout_title: 'План тренировки',
     workout_min: 'минут',
@@ -456,7 +498,32 @@ const translations = {
     progress_add: 'Добавить фактический вес',
     dash_reanalyze: 'Переанализировать',
     progress_kg: 'кг',
-
+    // 🔥 NEW PROGRESS KEYS
+    progress_status: 'Статус',
+    progress_ahead: 'Отлично! Вы опережаете план 🔥 Сохраняйте этот темп.',
+    progress_behind: 'Вы немного отстаёте от плана ⚠️ Нужно усилить питание и тренировки.',
+    progress_ontrack: 'Вы идёте по плану ✅ Продолжайте в том же ритме.',
+    progress_ahead_short: 'Впереди',
+    progress_behind_short: 'Позади',
+    progress_ontrack_short: 'По плану',
+    progress_diff: 'Разница',
+    progress_left: 'Осталось',
+    progress_current_week: 'Текущая неделя',
+    progress_add_weight: 'Добавить фактический вес',
+    progress_input_placeholder: 'Например: 72',
+    progress_add_btn: 'Добавить',
+    progress_weekly_title: 'Недельный прогресс',
+    progress_empty: 'Пока нет данных прогресса',
+    progress_month_estimate: 'Прогноз кг в месяц',
+    progress_3month_goal: 'Цель за 3 месяца',
+    progress_real_vs_plan: 'Факт vs План',
+    progress_weeks_left: 'Недель осталось',
+    progress_12week_forecast: 'Прогноз на 12 недель',
+    progress_target_line: 'Красная линия — цель на 3 месяца',
+    progress_real_tracking_title: 'Реальное отслеживание прогресса',
+    progress_real_tracking_desc: 'Еженедельная загрузка фото, сравнение AI, точные изменения',
+    progress_start: 'Старт',
+    progress_week_short: 'неделя',
     // Settings
     settings_title: 'Настройки',
     settings_name: 'Имя',
@@ -469,7 +536,6 @@ const translations = {
     settings_edit_profile: 'Изменить данные',
     settings_reanalyze: 'Повторный AI анализ',
     settings_saved: 'Сохранено ✓',
-
     // Bottom Nav
     nav_home: 'Главная',
     nav_diet: 'Питание',
@@ -543,24 +609,29 @@ const translations = {
     landing_price_year_f2: 'Личный AI тренер',
     landing_price_year_f3: '3 семейных профиля',
     landing_price_year_f4: 'PDF отчет',
-    landing_footer: '© 2025 FitAI · Узбекистан · Конфиденциальность'
+    landing_footer: '© 2025 FitAI · Узбекистан · Конфиденциальность',
+    workout_not_found: 'План тренировки не найден',
+    workout_set: 'Подход',
   },
 } as const
 
 export type TranslationKey = keyof typeof translations.uz
 
 export function useTranslation() {
-  const locale = useUserStore((s) => s.locale)
+  const locale = useUserStore((s) => s.locale) || 'uz'
   const t = (key: TranslationKey): string => {
-    return translations[locale]?.[key] || translations.uz[key] || key
+    return translations[locale]?.[key] ?? translations.uz[key] ?? key
   }
   return { t, locale }
 }
 
 export function getTranslation(locale: Locale) {
+  const safeLocale = locale || 'uz'
+
   const t = (key: TranslationKey): string => {
-    return translations[locale]?.[key] || translations.uz[key] || key
+    return translations[safeLocale]?.[key] ?? translations.uz[key] ?? key
   }
+
   return { t }
 }
 

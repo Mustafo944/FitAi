@@ -2,10 +2,33 @@
 // src/app/landing/page.tsx
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase'
 import { useTranslation } from '@/lib/i18n'
 
 export default function LandingPage() {
+    const router = useRouter()
+    const supabase = createClient()
     const { t } = useTranslation()
+    const [isChecking, setIsChecking] = useState(true)
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            const { data } = await supabase.auth.getUser()
+            if (data.user) {
+                // Agar user kirgan bo'lsa, dashboard ga redirect
+                router.replace('/dashboard')
+            } else {
+                setIsChecking(false)
+            }
+        }
+        checkAuth()
+    }, [router])
+
+    if (isChecking) {
+        return null
+    }
 
     const features = [
         { icon: '🧬', title: t('landing_feat1_title'), desc: t('landing_feat1_desc') },

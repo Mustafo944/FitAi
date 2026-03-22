@@ -35,7 +35,11 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
-    if (!analysis) router.replace('/onboarding')
+    // Dashboard - faqat authorized user uchun
+    // Agar analysis yo'q bo'lsa, onboarding ga redirect
+    if (!analysis) {
+      router.replace('/onboarding')
+    }
   }, [analysis, router])
 
   if (!analysis) return null
@@ -241,11 +245,10 @@ export default function DashboardPage() {
           <div className="bg-[#c8f55a]/8 border border-[#c8f55a]/25 rounded-2xl p-5 mb-4">
             <div className="flex items-center justify-between mb-3">
               <div className="text-xs text-[#c8f55a] font-semibold">{t('dash_ai_coach')}</div>
-              <span className={`text-xs px-3 py-1 rounded-full font-medium ${
-                safeAnalysis.body_score >= 80 ? 'bg-green-500/15 text-green-400'
-                : safeAnalysis.body_score >= 60 ? 'bg-yellow-500/15 text-yellow-400'
-                : 'bg-red-500/15 text-red-400'
-              }`}>
+              <span className={`text-xs px-3 py-1 rounded-full font-medium ${safeAnalysis.body_score >= 80 ? 'bg-green-500/15 text-green-400'
+                  : safeAnalysis.body_score >= 60 ? 'bg-yellow-500/15 text-yellow-400'
+                    : 'bg-red-500/15 text-red-400'
+                }`}>
                 {safeAnalysis.body_score >= 80 && t('dash_excellent')}
                 {safeAnalysis.body_score >= 60 && safeAnalysis.body_score < 80 && t('dash_good')}
                 {safeAnalysis.body_score < 60 && t('dash_needs_work')}

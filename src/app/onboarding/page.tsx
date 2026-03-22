@@ -9,20 +9,19 @@ import { useTranslation } from '@/lib/i18n'
 import toast from 'react-hot-toast'
 import type { Gender, Goal } from '@/types'
 
+const supabase = createClient()
+
 export default function OnboardingPage() {
   const router = useRouter()
-  const supabase = createClient()
   const { t } = useTranslation()
 
-  const {
-    onboardingData,
-    setOnboardingData,
-    setAnalysis,
-    setDietPlan,
-    setWorkoutPlan,
-    setProgress,
-    locale,
-  } = useUserStore()
+  const onboardingData = useUserStore((s) => s.onboardingData)
+  const setOnboardingData = useUserStore((s) => s.setOnboardingData)
+  const setAnalysis = useUserStore((s) => s.setAnalysis)
+  const setDietPlan = useUserStore((s) => s.setDietPlan)
+  const setWorkoutPlan = useUserStore((s) => s.setWorkoutPlan)
+  const setProgress = useUserStore((s) => s.setProgress)
+  const locale = useUserStore((s) => s.locale)
 
   const [step, setStep] = useState(1)
   const [analyzing, setAnalyzing] = useState(false)
@@ -39,40 +38,51 @@ export default function OnboardingPage() {
   ]
 
   useEffect(() => {
+    const selected = localStorage.getItem('lang')
+
+    if (!selected) {
+      router.replace('/language')
+      return
+    }
+
+    let isMounted = true
+
     const checkUserAndRedirect = async () => {
       const searchParams = new URLSearchParams(window.location.search)
+
       if (searchParams.get('reanalyze') === 'true') {
-        setIsChecking(false)
-        return // Agar "Qayta tahlil" orqali kelgan bo'lsa, DB orqali tiklashni rad etamiz
+        if (isMounted) setIsChecking(false)
+        return
       }
 
-      const state = useUserStore.getState()
-      
-      // Agar tayyor reja qabul qilingan bo'lsa
-      if (state.analysis) {
+      if (useUserStore.getState().analysis) {
         router.replace('/dashboard')
         return
       }
 
-      // Agar localda yo'q, lekin DB da bo'lsa
-      const { data: { user } } = await supabase.auth.getUser()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
       const meta = user?.user_metadata
+
       if (meta?.analysis) {
-        state.setAnalysis(meta.analysis)
-        if (meta.dietPlan) state.setDietPlan(meta.dietPlan)
-        if (meta.workoutPlan) state.setWorkoutPlan(meta.workoutPlan)
+        setAnalysis(meta.analysis)
+        setDietPlan(meta.dietPlan || [])
+        setWorkoutPlan(meta.workoutPlan || [])
         router.replace('/dashboard')
       } else {
-        setIsChecking(false)
+        if (isMounted) setIsChecking(false)
       }
     }
 
     checkUserAndRedirect()
-    
+
     return () => {
+      isMounted = false
       if (preview) URL.revokeObjectURL(preview)
     }
-  }, [preview, router, supabase])
+  }, [preview, router, setAnalysis, setDietPlan, setWorkoutPlan])
 
   const validateStepOne = () => {
     const { height, weight, age, gender } = onboardingData
@@ -155,7 +165,7 @@ export default function OnboardingPage() {
       formData.append('age', String(age).trim())
       formData.append('gender', String(gender).trim())
       formData.append('goal', String(goal).trim())
-      formData.append('locale', locale)
+      formData.append('locale', locale || 'uz')
 
       const aiPlanRes = await fetch('/api/ai-plan', {
         method: 'POST',
@@ -174,18 +184,18 @@ export default function OnboardingPage() {
         ...raw,
         id: Date.now().toString(),
         created_at: new Date().toISOString(),
-
         level: raw.level || 'beginner',
         weeks_to_goal: raw.weeks_to_goal || 4,
-
         features: {
           belly_fat: raw?.features?.belly_fat || 'medium',
           muscle_visibility: raw?.features?.muscle_visibility || 'medium',
           posture: raw?.features?.posture || 'average',
         },
-
         coach_message:
-          raw.coach_message || (locale === 'ru' ? 'Продолжайте план сегодня.' : 'Bugun rejangizni davom ettiring.'),
+          raw.coach_message ||
+          (locale === 'ru'
+            ? 'Продолжайте план сегодня.'
+            : 'Bugun rejangizni davom ettiring.'),
       }
 
       setAnalysis(analysis)
@@ -198,13 +208,12 @@ export default function OnboardingPage() {
         },
       ])
 
-      // Data basega ham saqlash (boshqa joydan kirganda o'chib ketmasligi uchun)
       await supabase.auth.updateUser({
         data: {
-          analysis: analysis,
+          analysis,
           dietPlan: aiPlanData.data.diet || [],
-          workoutPlan: aiPlanData.data.workout || []
-        }
+          workoutPlan: aiPlanData.data.workout || [],
+        },
       })
 
       clearInterval(interval)
@@ -212,7 +221,7 @@ export default function OnboardingPage() {
       setProgressText(t('onboarding_done'))
 
       setTimeout(() => {
-        router.push('/dashboard')
+        router.replace('/dashboard')
       }, 900)
     } catch (err: unknown) {
       clearInterval(interval)
@@ -263,7 +272,6 @@ export default function OnboardingPage() {
 
               {preview ? (
                 <div className="relative mb-6 rounded-3xl overflow-hidden border border-[#c8f55a]/20 bg-black">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={preview}
                     alt="Body scan preview"
@@ -415,7 +423,6 @@ export default function OnboardingPage() {
                 />
               </div>
 
-              {/* Beautiful Gender Selection Cards */}
               <div>
                 <label className="text-xs text-gray-500 font-medium mb-1.5 block">
                   {t('onboarding_gender')}
@@ -424,11 +431,10 @@ export default function OnboardingPage() {
                   <button
                     type="button"
                     onClick={() => setOnboardingData({ gender: 'male' as Gender })}
-                    className={`flex-1 py-3 rounded-xl text-center transition-all duration-300 ${
-                      onboardingData.gender === 'male'
-                        ? 'bg-gradient-to-br from-blue-500/20 to-cyan-500/10 border-2 border-blue-400 text-blue-300 shadow-[0_0_20px_rgba(59,130,246,0.2)] scale-[1.02]'
-                        : 'bg-[#111] border border-white/10 text-gray-400 hover:border-white/20'
-                    }`}
+                    className={`flex-1 py-3 rounded-xl text-center transition-all duration-300 ${onboardingData.gender === 'male'
+                      ? 'bg-gradient-to-br from-blue-500/20 to-cyan-500/10 border-2 border-blue-400 text-blue-300 shadow-[0_0_20px_rgba(59,130,246,0.2)] scale-[1.02]'
+                      : 'bg-[#111] border border-white/10 text-gray-400 hover:border-white/20'
+                      }`}
                   >
                     <div className="text-2xl mb-0.5">🚹</div>
                     <div className="text-[11px] font-semibold">{t('onboarding_gender_male')}</div>
@@ -437,11 +443,10 @@ export default function OnboardingPage() {
                   <button
                     type="button"
                     onClick={() => setOnboardingData({ gender: 'female' as Gender })}
-                    className={`flex-1 py-3 rounded-xl text-center transition-all duration-300 ${
-                      onboardingData.gender === 'female'
-                        ? 'bg-gradient-to-br from-pink-500/20 to-rose-500/10 border-2 border-pink-400 text-pink-300 shadow-[0_0_20px_rgba(236,72,153,0.2)] scale-[1.02]'
-                        : 'bg-[#111] border border-white/10 text-gray-400 hover:border-white/20'
-                    }`}
+                    className={`flex-1 py-3 rounded-xl text-center transition-all duration-300 ${onboardingData.gender === 'female'
+                      ? 'bg-gradient-to-br from-pink-500/20 to-rose-500/10 border-2 border-pink-400 text-pink-300 shadow-[0_0_20px_rgba(236,72,153,0.2)] scale-[1.02]'
+                      : 'bg-[#111] border border-white/10 text-gray-400 hover:border-white/20'
+                      }`}
                   >
                     <div className="text-2xl mb-0.5">🚺</div>
                     <div className="text-[11px] font-semibold">{t('onboarding_gender_female')}</div>
@@ -456,9 +461,7 @@ export default function OnboardingPage() {
                   <div className="relative z-10 flex items-center justify-between mb-3">
                     <div>
                       <h3 className="text-white font-semibold text-lg">{t('onboarding_ai_scan')}</h3>
-                      <p className="text-xs text-gray-500">
-                        {t('onboarding_ai_scan_desc')}
-                      </p>
+                      <p className="text-xs text-gray-500">{t('onboarding_ai_scan_desc')}</p>
                     </div>
                     <div className="h-11 w-11 rounded-2xl bg-[#c8f55a]/10 border border-[#c8f55a]/20 flex items-center justify-center text-[#c8f55a] text-xl">
                       ✨
@@ -479,9 +482,7 @@ export default function OnboardingPage() {
                           📷
                         </div>
                         <div className="text-white font-semibold mb-1">{t('onboarding_pick_image')}</div>
-                        <div className="text-xs text-gray-500 mb-4">
-                          {t('onboarding_image_format')}
-                        </div>
+                        <div className="text-xs text-gray-500 mb-4">{t('onboarding_image_format')}</div>
 
                         <div className="inline-flex items-center gap-2 rounded-full bg-[#c8f55a] text-black font-semibold px-5 py-3 text-sm shadow-[0_0_20px_rgba(200,245,90,0.25)]">
                           <span>{t('onboarding_start_scan')}</span>
@@ -491,7 +492,6 @@ export default function OnboardingPage() {
                   ) : (
                     <div className="relative z-10 space-y-4">
                       <div className="relative rounded-[24px] overflow-hidden border border-[#c8f55a]/20 bg-black">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={preview}
                           alt="Preview"
@@ -560,9 +560,7 @@ export default function OnboardingPage() {
                         <div className="rounded-2xl border border-[#c8f55a]/20 bg-[#c8f55a]/8 p-4 shadow-[0_0_20px_rgba(200,245,90,0.05)]">
                           <div className="text-xs text-gray-500 mb-1">{t('scan_after')}</div>
                           <div className="text-[#c8f55a] font-medium">{t('scan_smart')}</div>
-                          <div className="text-xs text-gray-400 mt-1">
-                            {t('scan_smart_desc')}
-                          </div>
+                          <div className="text-xs text-gray-400 mt-1">{t('scan_smart_desc')}</div>
                         </div>
                       </div>
                     </div>
@@ -597,8 +595,8 @@ export default function OnboardingPage() {
                   key={g.value}
                   onClick={() => setOnboardingData({ goal: g.value as Goal })}
                   className={`p-4 rounded-2xl border text-left transition-all ${onboardingData.goal === g.value
-                      ? 'border-[#c8f55a] bg-[#c8f55a]/10 text-[#c8f55a] shadow-[0_0_20px_rgba(200,245,90,0.08)]'
-                      : 'border-white/10 bg-[#111] text-white hover:border-white/25'
+                    ? 'border-[#c8f55a] bg-[#c8f55a]/10 text-[#c8f55a] shadow-[0_0_20px_rgba(200,245,90,0.08)]'
+                    : 'border-white/10 bg-[#111] text-white hover:border-white/25'
                     }`}
                 >
                   <span className="text-2xl block mb-2">{g.emoji}</span>
