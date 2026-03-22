@@ -6,25 +6,52 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useTranslation } from '@/lib/i18n'
+import { useUserStore } from '@/store/userStore'
+
+const supabase = createClient()
 
 export default function LandingPage() {
     const router = useRouter()
-    const supabase = createClient()
     const { t } = useTranslation()
+    const setLocale = useUserStore((s) => s.setLocale)
     const [isChecking, setIsChecking] = useState(true)
 
     useEffect(() => {
+        const selected = localStorage.getItem('lang')
+
+        if (!selected) {
+            router.replace('/language')
+            return
+        }
+
+        if (selected === 'uz' || selected === 'ru') {
+            setLocale(selected)
+        } else {
+            localStorage.setItem('lang', 'uz')
+            setLocale('uz')
+        }
+
+        let cancelled = false
+
         const checkAuth = async () => {
             const { data } = await supabase.auth.getUser()
+
+            if (cancelled) return
+
             if (data.user) {
-                // Agar user kirgan bo'lsa, dashboard ga redirect
                 router.replace('/dashboard')
-            } else {
-                setIsChecking(false)
+                return
             }
+
+            setIsChecking(false)
         }
+
         checkAuth()
-    }, [router])
+
+        return () => {
+            cancelled = true
+        }
+    }, [router, setLocale])
 
     if (isChecking) {
         return null
@@ -50,6 +77,7 @@ export default function LandingPage() {
                 <div className="font-['Clash_Display'] text-xl md:text-2xl font-bold">
                     Fit<span className="text-[#c8f55a]">AI</span>
                 </div>
+
                 <div className="flex items-center gap-6 md:gap-8">
                     <div className="hidden md:flex items-center gap-6">
                         <a href="#features" className="text-gray-500 text-sm hover:text-white transition-colors">
@@ -59,6 +87,7 @@ export default function LandingPage() {
                             {t('landing_pricing')}
                         </a>
                     </div>
+
                     <Link
                         href="/auth"
                         className="bg-[#c8f55a] text-[#0a0a0a] px-5 py-2 md:px-6 md:py-2.5 rounded-full text-xs md:text-sm font-semibold hover:opacity-90 transition-opacity"
@@ -118,10 +147,12 @@ export default function LandingPage() {
                 <div className="text-[11px] font-bold tracking-[0.1em] uppercase text-[#c8f55a] mb-3.5">
                     {t('landing_step_badge')}
                 </div>
+
                 <h2 className="font-['Clash_Display'] text-3xl md:text-5xl font-bold tracking-tight mb-12">
                     {t('landing_step_title1')}
                     <span className="text-[#c8f55a]">{t('landing_step_title2')}</span>
                 </h2>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-px md:bg-white/5 rounded-2xl overflow-hidden border border-white/5 md:border-none">
                     {steps.map((s, i) => (
                         <div
@@ -143,10 +174,12 @@ export default function LandingPage() {
                 <div className="text-[11px] font-bold tracking-[0.1em] uppercase text-[#c8f55a] mb-3.5">
                     {t('landing_feat_badge')}
                 </div>
+
                 <h2 className="font-['Clash_Display'] text-3xl md:text-5xl font-bold tracking-tight mb-10">
                     {t('landing_feat_title1')}
                     <span className="text-[#c8f55a]">{t('landing_feat_title2')}</span>
                 </h2>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {features.map((f, i) => (
                         <div
@@ -169,10 +202,12 @@ export default function LandingPage() {
                 <div className="text-[11px] font-bold tracking-[0.1em] uppercase text-[#c8f55a] mb-3.5">
                     {t('landing_price_badge')}
                 </div>
+
                 <h2 className="font-['Clash_Display'] text-3xl md:text-5xl font-bold tracking-tight mb-10">
                     {t('landing_price_title1')}
                     <span className="text-[#c8f55a]">{t('landing_price_title2')}</span>
                 </h2>
+
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                     {[
                         {
@@ -248,6 +283,7 @@ export default function LandingPage() {
                                         {f}
                                     </li>
                                 ))}
+
                                 {plan.no.map((f, fi) => (
                                     <li
                                         key={fi}
