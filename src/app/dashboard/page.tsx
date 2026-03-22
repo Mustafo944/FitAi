@@ -30,8 +30,7 @@ export default function DashboardPage() {
     setAnalysis(null)
     setDietPlan([])
     setWorkoutPlan([])
-    router.push('/')
-    router.refresh()
+    router.replace('/')
   }
 
   useEffect(() => {
@@ -113,9 +112,9 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white pb-24 md:pb-8">
-      <div className="border-b border-white/8 px-4 md:px-6 py-4 flex items-center justify-between">
+      <div className="border-b border-white/8 px-4 md:px-6 py-4 flex items-center justify-between animate-fade-in-down">
         <div className="text-xl font-bold" style={{ fontFamily: 'var(--font-clash)' }}>
-          Fit<span className="text-[#c8f55a]">AI</span>
+          Fit<span className="text-[#c8f55a] accent-glow">AI</span>
         </div>
 
         <div className="flex items-center gap-3">
@@ -141,7 +140,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-6 md:py-8">
+      <div className="max-w-2xl mx-auto px-4 py-6 md:py-8 animate-fade-in-up">
         <div className="mb-8">
           <h1 className="text-xl md:text-2xl font-bold mb-1" style={{ fontFamily: 'var(--font-clash)' }}>
             {t('dash_results')}
@@ -163,7 +162,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className="bg-[#111] border border-white/8 rounded-2xl p-4 md:p-5 text-center">
+            <div className="bg-[#111] border border-white/8 rounded-2xl p-4 md:p-5 text-center card-hover">
               <div className="text-3xl md:text-4xl font-bold mb-1" style={{ color: bmi.color, fontFamily: 'var(--font-clash)' }}>
                 {safeAnalysis.bmi.toFixed(1)}
               </div>
@@ -171,7 +170,7 @@ export default function DashboardPage() {
               <div className="text-xs mt-1 font-medium" style={{ color: bmi.color }}>{bmi.text}</div>
             </div>
 
-            <div className="bg-[#111] border border-white/8 rounded-2xl p-4 md:p-5 text-center">
+            <div className="bg-[#111] border border-white/8 rounded-2xl p-4 md:p-5 text-center card-hover">
               <div className="text-3xl md:text-4xl font-bold text-[#ff6b35] mb-1" style={{ fontFamily: 'var(--font-clash)' }}>
                 {safeAnalysis.fat_percentage}%
               </div>
@@ -246,8 +245,8 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between mb-3">
               <div className="text-xs text-[#c8f55a] font-semibold">{t('dash_ai_coach')}</div>
               <span className={`text-xs px-3 py-1 rounded-full font-medium ${safeAnalysis.body_score >= 80 ? 'bg-green-500/15 text-green-400'
-                  : safeAnalysis.body_score >= 60 ? 'bg-yellow-500/15 text-yellow-400'
-                    : 'bg-red-500/15 text-red-400'
+                : safeAnalysis.body_score >= 60 ? 'bg-yellow-500/15 text-yellow-400'
+                  : 'bg-red-500/15 text-red-400'
                 }`}>
                 {safeAnalysis.body_score >= 80 && t('dash_excellent')}
                 {safeAnalysis.body_score >= 60 && safeAnalysis.body_score < 80 && t('dash_good')}
@@ -279,7 +278,7 @@ export default function DashboardPage() {
 
             {safeAnalysis.recommendations.length > 0 && (
               <ul className="mt-3 space-y-1">
-                {safeAnalysis.recommendations.map((r: any, i: number) => (
+                {safeAnalysis.recommendations.map((r: string | Record<string, string>, i: number) => (
                   <li key={i} className="text-sm text-gray-500 flex gap-2">
                     <span className="text-[#c8f55a] mt-0.5">→</span>
                     <span>{getLoc(r, locale)}</span>
@@ -300,7 +299,7 @@ export default function DashboardPage() {
 
           {todayDiet && (
             <Link href="/dashboard/diet">
-              <div className="bg-[#111] border border-white/8 rounded-2xl p-4 md:p-5 mb-3 hover:border-white/20 transition-colors cursor-pointer">
+              <div className="bg-[#111] border border-white/8 rounded-2xl p-4 md:p-5 mb-3 card-hover cursor-pointer">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span className="text-xl">🍽️</span>
@@ -313,7 +312,7 @@ export default function DashboardPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {todayDiet.meals?.slice(0, 3).map(
-                    (meal: { time?: string; name?: any; total_calories?: number }, i: number) => (
+                    (meal: { time?: string; name?: string | Record<string, string>; total_calories?: number }, i: number) => (
                       <div key={i} className="bg-white/5 rounded-xl p-3 text-center">
                         <div className="text-xs text-gray-400 mb-1">{meal.time || '--:--'}</div>
                         <div className="text-[13px] font-medium truncate">{getLoc(meal.name, locale)}</div>
@@ -328,7 +327,7 @@ export default function DashboardPage() {
 
           {todayWorkout && (
             <Link href="/dashboard/workout">
-              <div className="bg-[#111] border border-white/8 rounded-2xl p-4 md:p-5 hover:border-white/20 transition-colors cursor-pointer">
+              <div className="bg-[#111] border border-white/8 rounded-2xl p-4 md:p-5 card-hover cursor-pointer">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span className="text-xl">💪</span>
@@ -348,7 +347,7 @@ export default function DashboardPage() {
           )}
 
           <Link href="/dashboard/progress">
-            <div className="bg-[#111] border border-white/8 rounded-2xl p-4 md:p-5 mt-3 hover:border-white/20 transition-colors cursor-pointer">
+            <div className="bg-[#111] border border-white/8 rounded-2xl p-4 md:p-5 mt-3 card-hover cursor-pointer">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-xl">📊</span>
@@ -360,7 +359,7 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        <div className="bg-gradient-to-br from-[#c8f55a]/10 to-[#c8f55a]/5 border border-[#c8f55a]/20 rounded-2xl p-6 text-center">
+        <div className="bg-gradient-to-br from-[#c8f55a]/10 to-[#c8f55a]/5 border border-[#c8f55a]/20 rounded-2xl p-6 text-center accent-border-glow">
           <div className="text-2xl mb-2">🚀</div>
           <h3 className="font-bold text-lg mb-2" style={{ fontFamily: 'var(--font-clash)' }}>
             {t('dash_pro_title')}

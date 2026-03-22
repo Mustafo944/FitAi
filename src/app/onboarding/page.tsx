@@ -38,13 +38,6 @@ export default function OnboardingPage() {
   ]
 
   useEffect(() => {
-    const selected = localStorage.getItem('lang')
-
-    if (!selected) {
-      router.replace('/language')
-      return
-    }
-
     let isMounted = true
 
     const checkUserAndRedirect = async () => {
@@ -54,8 +47,9 @@ export default function OnboardingPage() {
         if (isMounted) setIsChecking(false)
         return
       }
+      const existingAnalysis = useUserStore.getState().analysis
 
-      if (useUserStore.getState().analysis) {
+      if (existingAnalysis && !window.location.search.includes('reanalyze=true')) {
         router.replace('/dashboard')
         return
       }
@@ -276,6 +270,8 @@ export default function OnboardingPage() {
                     src={preview}
                     alt="Body scan preview"
                     className="w-full h-72 object-cover opacity-70"
+                    loading="lazy"
+                    decoding="async"
                   />
 
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
@@ -496,6 +492,8 @@ export default function OnboardingPage() {
                           src={preview}
                           alt="Preview"
                           className="w-full h-72 object-cover"
+                          loading="lazy"
+                          decoding="async"
                         />
 
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/10" />

@@ -18,31 +18,33 @@ export default function BottomNav() {
   const { t } = useTranslation()
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-white/8 md:hidden">
-      <div className="flex items-center justify-around py-2 px-1">
-        {tabs.map((tab) => {
-          const isActive = pathname === tab.href
-          return (
-            <Link
-              key={tab.href}
-              href={tab.href}
-              className={`flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-xl transition-all ${isActive
-                  ? 'text-[#c8f55a]'
-                  : 'text-gray-500 hover:text-gray-300'
-                }`}
-            >
-              <span className={`text-xl ${isActive ? 'scale-110' : ''} transition-transform`}>
-                {tab.icon}
-              </span>
-              <span className={`text-[10px] font-medium ${isActive ? 'text-[#c8f55a]' : ''}`}>
-                {t(tab.labelKey)}
-              </span>
-              {isActive && (
-                <div className="absolute bottom-1 w-1 h-1 rounded-full bg-[#c8f55a]" />
-              )}
-            </Link>
-          )
-        })}
+    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
+      <div className="glass-strong rounded-t-2xl border-t border-white/8 mx-1 mb-0">
+        <div className="flex items-center justify-around py-2 px-1">
+          {tabs.map((tab) => {
+            const isActive = pathname === tab.href
+            return (
+              <Link
+                key={tab.href}
+                href={tab.href}
+                className={`relative flex flex-col items-center gap-0.5 py-2 px-3 rounded-xl transition-all duration-300 ${isActive
+                    ? 'text-[#c8f55a]'
+                    : 'text-gray-500 hover:text-gray-300 active:scale-95'
+                  }`}
+              >
+                {isActive && (
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-6 h-1 rounded-full bg-[#c8f55a] shadow-[0_0_10px_rgba(200,245,90,0.5)]" />
+                )}
+                <span className={`text-xl transition-all duration-300 ${isActive ? 'scale-110 drop-shadow-[0_0_8px_rgba(200,245,90,0.4)]' : ''}`}>
+                  {tab.icon}
+                </span>
+                <span className={`text-[10px] font-medium transition-colors duration-300 ${isActive ? 'text-[#c8f55a]' : ''}`}>
+                  {t(tab.labelKey)}
+                </span>
+              </Link>
+            )
+          })}
+        </div>
       </div>
     </nav>
   )

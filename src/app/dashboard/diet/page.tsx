@@ -71,7 +71,7 @@ export default function DietPage() {
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 py-6">
+      <div className="max-w-lg mx-auto px-4 py-6 animate-fade-in-up">
 
         {/* Kaloriya progress */}
         <div className="bg-[#111] border border-white/8 rounded-2xl p-5 mb-6">
@@ -107,7 +107,7 @@ export default function DietPage() {
         {/* Ovqatlar ro'yxati */}
         <div className="space-y-3">
           {today.meals?.map((meal: Meal, mi: number) => (
-            <div key={mi} className="bg-[#111] border border-white/8 rounded-2xl overflow-hidden">
+            <div key={mi} className="bg-[#111] border border-white/8 rounded-2xl overflow-hidden card-hover">
               {/* Meal header */}
               <button
                 onClick={() => setSelectedMeal(selectedMeal?.name === meal.name ? null : meal)}
@@ -207,7 +207,7 @@ export default function DietPage() {
         </div>
 
         {/* Pro upsell - 30 kunlik reja */}
-        <div className="mt-6 bg-[#c8f55a]/8 border border-[#c8f55a]/20 rounded-2xl p-5 text-center">
+        <div className="mt-6 bg-[#c8f55a]/8 border border-[#c8f55a]/20 rounded-2xl p-5 text-center accent-border-glow">
           <div className="text-lg mb-1">🔒</div>
           <h3 className="font-bold mb-1" style={{ fontFamily: 'var(--font-clash)' }}>
             {t('dash_pro_title')}

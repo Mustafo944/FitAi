@@ -94,7 +94,7 @@ export default function SettingsPage() {
       {/* Header */}
       <div className="border-b border-white/8 px-6 py-4 flex items-center justify-between">
         <div className="text-xl font-bold" style={{ fontFamily: 'var(--font-clash)' }}>
-          Fit<span className="text-[#c8f55a]">AI</span>
+          Fit<span className="text-[#c8f55a] accent-glow">AI</span>
         </div>
         <button
           onClick={handleLogout}
@@ -105,7 +105,7 @@ export default function SettingsPage() {
         </button>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 py-8">
+      <div className="max-w-lg mx-auto px-4 py-8 animate-fade-in-up">
         <h1
           className="text-2xl font-bold mb-6"
           style={{ fontFamily: 'var(--font-clash)' }}
@@ -331,7 +331,7 @@ export default function SettingsPage() {
         <button
           onClick={handleReanalyze}
           type="button"
-          className="w-full bg-[#111] border border-[#c8f55a]/30 text-[#c8f55a] font-semibold py-4 rounded-2xl hover:bg-[#c8f55a]/10 transition-all mb-4"
+          className="w-full bg-[#111] border border-[#c8f55a]/30 text-[#c8f55a] font-semibold py-4 rounded-2xl hover:bg-[#c8f55a]/10 transition-all mb-4 accent-border-glow"
         >
           🤖 {t('settings_reanalyze')}
         </button>

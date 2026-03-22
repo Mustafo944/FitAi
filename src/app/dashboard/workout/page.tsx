@@ -81,7 +81,7 @@ export default function WorkoutPage() {
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 py-6">
+      <div className="max-w-lg mx-auto px-4 py-6 animate-fade-in-up">
 
         {/* Progress */}
         <div className="bg-[#111] border border-white/8 rounded-2xl p-5 mb-6">
@@ -225,7 +225,7 @@ export default function WorkoutPage() {
         </div>
 
         {/* Pro upsell */}
-        <div className="mt-6 bg-[#c8f55a]/8 border border-[#c8f55a]/20 rounded-2xl p-5 text-center">
+        <div className="mt-6 bg-[#c8f55a]/8 border border-[#c8f55a]/20 rounded-2xl p-5 text-center accent-border-glow">
           <div className="text-lg mb-1">🔒</div>
           <h3 className="font-bold mb-1" style={{ fontFamily: 'var(--font-clash)' }}>
             {t('dash_pro_title')}

@@ -635,8 +635,12 @@ export function getTranslation(locale: Locale) {
   return { t }
 }
 
-export function getLoc(val: any, locale: string): string {
+export function getLoc(val: unknown, locale: string): string {
   if (!val) return ''
   if (typeof val === 'string') return val
-  return val[locale] || val['uz'] || ''
+  if (typeof val === 'object' && val !== null) {
+    const obj = val as Record<string, string>
+    return obj[locale] || obj['uz'] || ''
+  }
+  return ''
 }
